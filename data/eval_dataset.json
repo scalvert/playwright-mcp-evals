@@ -1,0 +1,52 @@
+{
+  "name": "sample-mcp-evals",
+  "description": "Sample eval dataset for MCP server testing",
+  "cases": [
+    {
+      "id": "get-weather-london",
+      "description": "Get weather for London",
+      "toolName": "get_weather",
+      "args": {
+        "city": "London"
+      },
+      "expectedSchemaName": "weather-response"
+    },
+    {
+      "id": "get-weather-tokyo",
+      "description": "Get weather for Tokyo",
+      "toolName": "get_weather",
+      "args": {
+        "city": "Tokyo"
+      },
+      "expectedSchemaName": "weather-response"
+    },
+    {
+      "id": "search-docs-mcp",
+      "description": "Search documentation for MCP information",
+      "toolName": "search_docs",
+      "args": {
+        "query": "Model Context Protocol",
+        "limit": 5
+      },
+      "judgeConfigId": "search-relevance"
+    },
+    {
+      "id": "calculate-sum",
+      "description": "Calculate sum of two numbers",
+      "toolName": "calculate",
+      "args": {
+        "operation": "add",
+        "a": 10,
+        "b": 20
+      },
+      "expectedExact": {
+        "result": 30
+      }
+    }
+  ],
+  "metadata": {
+    "version": "1.0",
+    "author": "playwright-mcp-evals",
+    "created": "2025-01-22"
+  }
+}

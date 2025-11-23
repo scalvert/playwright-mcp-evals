@@ -1,0 +1,57 @@
+# Basic Vitest Usage Example
+
+This example demonstrates how to use `playwright-mcp-evals` programmatically with Vitest for unit testing eval components.
+
+## Setup
+
+```bash
+npm install
+```
+
+## Example Test
+
+```typescript
+import { describe, it, expect } from 'vitest';
+import {
+  createMCPClientForConfig,
+  loadEvalDataset,
+  runEvalDataset,
+  createExactExpectation,
+} from 'playwright-mcp-evals';
+
+describe('MCP Eval Tests', () => {
+  it('should run evals programmatically', async () => {
+    // Create client
+    const client = await createMCPClientForConfig({
+      transport: 'stdio',
+      command: 'node',
+      args: ['path/to/server.js'],
+    });
+
+    // Load dataset
+    const dataset = await loadEvalDataset('./evals.json');
+
+    // Run evals
+    const result = await runEvalDataset(
+      {
+        dataset,
+        expectations: {
+          exact: createExactExpectation(),
+        },
+      },
+      { mcp: createMCPFixtureApi(client) }
+    );
+
+    expect(result.passed).toBe(result.total);
+
+    await client.close();
+  });
+});
+```
+
+## Use Cases
+
+- Unit testing eval expectations
+- Testing dataset loaders
+- Programmatic eval execution
+- CI/CD integration without Playwright
