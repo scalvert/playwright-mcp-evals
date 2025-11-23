@@ -18,6 +18,15 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
+    },
+    "./fixtures/mcp": {
+      "types": "./tests/fixtures/mcp.ts",
+      "import": "./tests/fixtures/mcp.ts"
+    },
+    "./reporters/mcpEvalReporter": {
+      "types": "./dist/reporters/mcpEvalReporter.d.ts",
+      "import": "./dist/reporters/mcpEvalReporter.js",
+      "require": "./dist/reporters/mcpEvalReporter.cjs"
     }
   },
   "main": "./dist/index.js",
@@ -27,16 +36,21 @@
     "playwright-mcp-evals": "./dist/cli/index.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "tests/fixtures",
+    "src/reporters/ui-dist"
   ],
   "scripts": {
-    "build": "tsup",
+    "build": "npm run build:ui && tsup",
+    "build:ui": "tsx src/reporters/build-ui.ts",
     "dev": "tsup --watch",
-    "format": "prettier --write \"**/*.{ts,json,md}\"",
-    "format:check": "prettier --check \"**/*.{ts,json,md}\"",
-    "lint": "eslint . --ext .ts",
-    "lint:fix": "eslint . --ext .ts --fix",
+    "dev:ui": "tsx src/reporters/build-ui.ts --watch",
+    "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,json,md}\"",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "prepublishOnly": "npm run build",
+    "preview-reporter": "tsx scripts/preview-reporter.ts",
     "test": "vitest run",
     "test:playwright": "playwright test",
     "test:watch": "vitest",
@@ -48,6 +62,7 @@
     "chalk": "^5.6.2",
     "commander": "^14.0.2",
     "inquirer": "^13.0.1",
+    "open": "^10.1.0",
     "openai": "^4.77.3",
     "ora": "^9.0.0",
     "zod": "^3.24.1"
@@ -55,11 +70,19 @@
   "devDependencies": {
     "@playwright/test": "^1.49.0",
     "@types/node": "^22.10.2",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
     "@typescript-eslint/eslint-plugin": "^8.18.2",
     "@typescript-eslint/parser": "^8.18.2",
     "@vitest/ui": "^2.1.9",
+    "autoprefixer": "^10.4.20",
+    "esbuild": "^0.24.0",
     "eslint": "^8.57.1",
+    "postcss": "^8.4.49",
     "prettier": "^3.4.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwindcss": "^3.4.15",
     "tsup": "^8.3.5",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",

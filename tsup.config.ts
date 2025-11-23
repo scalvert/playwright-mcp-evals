@@ -30,4 +30,16 @@ export default defineConfig([
       js: '#!/usr/bin/env node',
     },
   },
+  // Reporter build
+  {
+    entry: ['src/reporters/mcpEvalReporter.ts'],
+    format: ['esm', 'cjs'],
+    dts: true,
+    splitting: false,
+    sourcemap: true,
+    treeshake: true,
+    minify: false,
+    outDir: 'dist/reporters',
+    tsconfig: './tsconfig.build.json',
+  },
 ]);

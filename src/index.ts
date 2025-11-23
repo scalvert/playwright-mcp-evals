@@ -95,3 +95,10 @@ export {
   runConformanceChecks,
   formatConformanceResult,
 } from './spec/conformanceChecks.js';
+
+// Reporter
+export type {
+  MCPEvalReporterConfig,
+  MCPEvalRunData,
+  MCPEvalHistoricalSummary,
+} from './reporters/types.js';

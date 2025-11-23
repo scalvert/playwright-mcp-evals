@@ -5,11 +5,13 @@ node_modules/
 dist/
 build/
 *.tsbuildinfo
+src/reporters/ui-dist/
 
 # Test outputs
 coverage/
 playwright-report/
 test-results/
+.preview-output/
 
 # Environment variables
 .env

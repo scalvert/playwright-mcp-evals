@@ -41,7 +41,16 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: 'html',
+
+  // Reporters: HTML and MCP Eval Reporter
+  reporter: [
+    ['html'],
+    ['playwright-mcp-evals/reporters/mcpEvalReporter', {
+      outputDir: '.mcp-eval-results',
+      autoOpen: true,
+      historyLimit: 10
+    }]
+  ],
 
   use: {
     trace: 'on-first-retry',
@@ -102,7 +111,7 @@ test.describe('MCP Server Tests', () => {
     expect(result.pass).toBe(true);
   });
 
-  test('should run eval dataset', async ({ mcp }) => {
+  test('should run eval dataset', async ({ mcp }, testInfo) => {
     // Load dataset
     const dataset = await loadEvalDataset('./data/example-dataset.json');
 
@@ -126,6 +135,12 @@ test.describe('MCP Server Tests', () => {
       },
       { mcp }
     );
+
+    // Attach results for MCP Eval Reporter
+    await testInfo.attach('mcp-eval-results', {
+      body: JSON.stringify(result),
+      contentType: 'application/json',
+    });
 
     console.log(\`\\nEval Results: \${result.passed}/\${result.total} passed\`);
     expect(result.passed).toBeGreaterThan(0);
@@ -168,6 +183,7 @@ node_modules/
 test-results/
 playwright-report/
 playwright/.cache/
+.mcp-eval-results/
 
 # Build output
 dist/
