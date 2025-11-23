@@ -42,6 +42,37 @@
       "expectedExact": {
         "result": 30
       }
+    },
+    {
+      "id": "city-info-markdown-contains",
+      "description": "Validate city info markdown contains expected sections",
+      "toolName": "get_city_info",
+      "args": {
+        "city": "London"
+      },
+      "expectedTextContains": [
+        "## City Information",
+        "**City:** London",
+        "### Features",
+        "- Public Transportation"
+      ]
+    },
+    {
+      "id": "city-info-markdown-regex",
+      "description": "Validate city info markdown format with regex patterns",
+      "toolName": "get_city_info",
+      "args": {
+        "city": "London"
+      },
+      "expectedRegex": [
+        "^## City Information",
+        "\\*\\*City:\\*\\* \\w+",
+        "\\*\\*Population:\\*\\* [\\d.]+M",
+        "^### Features",
+        "^- [\\w\\s]+",
+        "Temperature: \\d+°C",
+        "\\d{4}-\\d{2}-\\d{2}"
+      ]
     }
   ],
   "metadata": {

@@ -146,9 +146,11 @@ mcpConfig: {
 
 ## Eval Expectations
 
+The framework supports multiple types of expectations to validate MCP tool responses:
+
 ### Exact Match
 
-Validates exact equality:
+Validates exact equality of structured data (JSON):
 
 ```typescript
 import { createExactExpectation } from 'playwright-mcp-evals';
@@ -165,6 +167,60 @@ const expectations = {
   "expectedExact": { "result": 5 }
 }
 ```
+
+### Text Contains
+
+Validates that response text contains expected substrings (ideal for markdown/unstructured text):
+
+```typescript
+import { createTextContainsExpectation } from 'playwright-mcp-evals';
+
+const expectations = {
+  textContains: createTextContainsExpectation(),
+  // Optional: case-insensitive matching
+  // textContains: createTextContainsExpectation({ caseSensitive: false }),
+};
+
+// In your dataset:
+{
+  "id": "markdown-response",
+  "toolName": "get_city_info",
+  "args": { "city": "London" },
+  "expectedTextContains": [
+    "## City Information",
+    "**City:** London",
+    "### Features",
+    "- Public Transportation"
+  ]
+}
+```
+
+### Regex Pattern Matching
+
+Validates that response text matches regex patterns (powerful for format validation):
+
+```typescript
+import { createRegexExpectation } from 'playwright-mcp-evals';
+
+const expectations = {
+  regex: createRegexExpectation(),
+};
+
+// In your dataset:
+{
+  "id": "weather-format",
+  "toolName": "get_weather",
+  "args": { "city": "London" },
+  "expectedRegex": [
+    "^## Weather",
+    "Temperature: \\d+°[CF]",
+    "Conditions?: (Sunny|Cloudy|Rainy|Snowy)",
+    "\\d{4}-\\d{2}-\\d{2}"
+  ]
+}
+```
+
+**Note:** Regex patterns support multiline matching (^ and $ match line starts/ends).
 
 ### Schema Validation
 
@@ -226,6 +282,29 @@ Supported providers:
 - `openai` - Requires `OPENAI_API_KEY` env var
 - `anthropic` - Requires `ANTHROPIC_API_KEY` env var
 
+### Combining Multiple Expectations
+
+You can use multiple expectations together:
+
+```typescript
+const result = await runEvalDataset(
+  {
+    dataset,
+    expectations: {
+      exact: createExactExpectation(),
+      schema: createSchemaExpectation(dataset),
+      textContains: createTextContainsExpectation(),
+      regex: createRegexExpectation(),
+      judge: createJudgeExpectation(judgeConfigs),
+    },
+    judgeClient,
+  },
+  { mcp }
+);
+```
+
+Each eval case will use the appropriate expectation based on which fields are defined (`expectedExact`, `expectedSchemaName`, `expectedTextContains`, `expectedRegex`, `judgeConfigId`).
+
 ## Protocol Conformance
 
 Check MCP spec compliance:
@@ -265,9 +344,18 @@ interface MCPFixtureApi {
 
 - `loadEvalDataset(path, options)` - Load eval dataset from JSON
 - `runEvalDataset(options, context)` - Run eval dataset
-- `createExactExpectation()` - Create exact match expectation
+- `createExactExpectation()` - Create exact match expectation (for JSON)
+- `createTextContainsExpectation(options?)` - Create text contains expectation (for markdown/text)
+- `createRegexExpectation()` - Create regex pattern expectation (for format validation)
 - `createSchemaExpectation(dataset)` - Create schema validation expectation
 - `createJudgeExpectation(configs)` - Create LLM judge expectation
+
+### Text Utilities
+
+- `extractTextFromResponse(response)` - Extract text from various MCP response formats
+- `normalizeWhitespace(text)` - Normalize whitespace for comparison
+- `findMissingSubstrings(text, substrings, caseSensitive?)` - Check for missing substrings
+- `findFailedPatterns(text, patterns)` - Check which regex patterns failed
 
 ### Judge Functions
 
@@ -281,10 +369,71 @@ interface MCPFixtureApi {
 
 ## Examples
 
+### Testing Markdown Responses
+
+Many MCP servers return markdown-formatted responses for better LLM readability. Here's a complete example:
+
+```typescript
+// Your MCP server returns markdown
+const response = `## City Information
+
+**City:** London
+**Population:** 8.9M
+
+### Features
+- Public Transportation
+- Cultural Attractions
+
+Temperature: 15°C
+Last updated: 2025-01-22`;
+
+// Validate with text contains
+{
+  "id": "city-info-text",
+  "toolName": "get_city_info",
+  "args": { "city": "London" },
+  "expectedTextContains": [
+    "## City Information",
+    "**City:** London",
+    "### Features"
+  ]
+}
+
+// Validate with regex patterns
+{
+  "id": "city-info-format",
+  "toolName": "get_city_info",
+  "args": { "city": "London" },
+  "expectedRegex": [
+    "^## City Information",      // Starts with heading
+    "\\*\\*City:\\*\\* \\w+",    // Has city field
+    "\\*\\*Population:\\*\\* [\\d.]+M",  // Population in millions
+    "Temperature: \\d+°C",       // Temperature format
+    "\\d{4}-\\d{2}-\\d{2}"      // Date format
+  ]
+}
+
+// In your test
+const result = await runEvalDataset(
+  {
+    dataset,
+    expectations: {
+      textContains: createTextContainsExpectation(),
+      regex: createRegexExpectation(),
+    },
+  },
+  { mcp }
+);
+```
+
+### More Examples
+
 See the `examples/` directory for complete examples:
 
 - `basic-playwright-usage/` - Simple Playwright test examples
 - `basic-vitest-usage/` - Vitest integration examples
+
+See `data/eval_dataset.json` for examples of all expectation types.
 
 ## Development
 
@@ -292,7 +441,7 @@ See the `examples/` directory for complete examples:
 
 This package includes a comprehensive test suite:
 
-**Unit Tests** (Vitest - 64 tests)
+**Unit Tests** (Vitest - 104 tests)
 
 ```bash
 npm test              # Run unit tests
@@ -303,7 +452,7 @@ Tests cover:
 
 - Configuration validation (18 tests)
 - Dataset types and loading (24 tests)
-- Expectations (exact, schema) (22 tests)
+- Expectations (exact, schema, textContains, regex) (62 tests)
 
 **Integration Tests** (Playwright - 5 tests)
 

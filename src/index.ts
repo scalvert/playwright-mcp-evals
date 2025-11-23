@@ -63,6 +63,17 @@ export {
   createJudgeExpectation,
   type JudgeConfigs,
 } from './evals/expectations/judgeExpectation.js';
+export {
+  createTextContainsExpectation,
+  type TextContainsExpectationOptions,
+} from './evals/expectations/textContainsExpectation.js';
+export { createRegexExpectation } from './evals/expectations/regexExpectation.js';
+export {
+  extractTextFromResponse,
+  normalizeWhitespace,
+  findMissingSubstrings,
+  findFailedPatterns,
+} from './evals/expectations/textUtils.js';
 
 // Judge
 export type {

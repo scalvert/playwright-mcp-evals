@@ -40,6 +40,18 @@ export interface EvalCase {
   judgeConfigId?: string;
 
   /**
+   * Expected text content (substring match)
+   * Can be a string or array of strings that must all be present in the response
+   */
+  expectedTextContains?: string | string[];
+
+  /**
+   * Expected regex pattern(s) that must match the response text
+   * Can be a string pattern or array of patterns
+   */
+  expectedRegex?: string | string[];
+
+  /**
    * Additional metadata for this test case
    */
   metadata?: Record<string, unknown>;
@@ -86,6 +98,8 @@ export const EvalCaseSchema = z.object({
   expectedExact: z.unknown().optional(),
   expectedSchemaName: z.string().optional(),
   judgeConfigId: z.string().optional(),
+  expectedTextContains: z.union([z.string(), z.array(z.string())]).optional(),
+  expectedRegex: z.union([z.string(), z.array(z.string())]).optional(),
   metadata: z.record(z.unknown()).optional(),
 });
 

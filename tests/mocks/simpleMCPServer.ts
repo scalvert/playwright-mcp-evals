@@ -122,6 +122,46 @@ server.registerTool(
   })
 );
 
+// Register a get_city_info tool that returns markdown
+server.registerTool(
+  'get_city_info',
+  {
+    title: 'Get City Info',
+    description: 'Gets formatted city information in markdown',
+    inputSchema: z.object({
+      city: z.string().describe('City name'),
+    }),
+  },
+  async ({ city }: { city: string }) => {
+    const markdown = `## City Information
+
+**City:** ${city}
+**Population:** 8.9M
+**Country:** United Kingdom
+
+### Features
+- Public Transportation
+- Cultural Attractions
+- Historical Sites
+- World-class Museums
+
+### Climate
+Temperature: 15°C
+Conditions: Partly Cloudy
+
+Last updated: 2025-01-22`;
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: markdown,
+        },
+      ],
+    };
+  }
+);
+
 // Start the server
 const transport = new StdioServerTransport();
 await server.connect(transport);

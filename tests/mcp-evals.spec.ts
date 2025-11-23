@@ -7,6 +7,8 @@ import { loadEvalDataset } from '../src/evals/datasetLoader.js';
 import { runEvalDataset } from '../src/evals/evalRunner.js';
 import { createExactExpectation } from '../src/evals/expectations/exactExpectation.js';
 import { createSchemaExpectation } from '../src/evals/expectations/schemaExpectation.js';
+import { createTextContainsExpectation } from '../src/evals/expectations/textContainsExpectation.js';
+import { createRegexExpectation } from '../src/evals/expectations/regexExpectation.js';
 import { z } from 'zod';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -69,6 +71,8 @@ test.describe('MCP Server Tests', () => {
         expectations: {
           exact: createExactExpectation(),
           schema: createSchemaExpectation(dataset),
+          textContains: createTextContainsExpectation(),
+          regex: createRegexExpectation(),
         },
         onCaseComplete: (caseResult) => {
           const status = caseResult.pass ? '✓' : '✗';
@@ -83,6 +87,12 @@ test.describe('MCP Server Tests', () => {
             if (caseResult.expectations.exact && !caseResult.expectations.exact.pass) {
               console.log(`    Exact: ${caseResult.expectations.exact.details}`);
             }
+            if (caseResult.expectations.textContains && !caseResult.expectations.textContains.pass) {
+              console.log(`    TextContains: ${caseResult.expectations.textContains.details}`);
+            }
+            if (caseResult.expectations.regex && !caseResult.expectations.regex.pass) {
+              console.log(`    Regex: ${caseResult.expectations.regex.details}`);
+            }
           }
         },
       },
@@ -91,9 +101,9 @@ test.describe('MCP Server Tests', () => {
 
     console.log(`\nEval Results: ${result.passed}/${result.total} passed`);
 
-    // Mock server supports get_weather and calculate tools
-    // calculate tool should pass exact match, get_weather should pass schema
-    expect(result.passed).toBeGreaterThanOrEqual(2);
+    // Mock server supports get_weather, calculate, and get_city_info tools
+    // All cases should pass now with text-based expectations
+    expect(result.passed).toBeGreaterThanOrEqual(4);
   });
 
   test('should handle tool call errors gracefully', async ({ mcp }) => {

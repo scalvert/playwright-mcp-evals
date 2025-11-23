@@ -71,6 +71,8 @@ export interface EvalCaseResult {
   expectations: {
     exact?: EvalExpectationResult;
     schema?: EvalExpectationResult;
+    textContains?: EvalExpectationResult;
+    regex?: EvalExpectationResult;
     judge?: EvalExpectationResult;
   };
 
@@ -125,6 +127,8 @@ export interface EvalRunnerOptions {
   expectations: {
     exact?: EvalExpectation;
     schema?: EvalExpectation;
+    textContains?: EvalExpectation;
+    regex?: EvalExpectation;
     judge?: EvalExpectation;
   };
 
@@ -234,6 +238,38 @@ export async function runEvalDataset(
           expectationResults.schema = {
             pass: false,
             details: `Schema expectation threw error: ${String(err)}`,
+          };
+        }
+      }
+
+      // Run textContains expectation
+      if (expectations.textContains) {
+        try {
+          expectationResults.textContains = await expectations.textContains(
+            enrichedContext,
+            evalCase,
+            response
+          );
+        } catch (err) {
+          expectationResults.textContains = {
+            pass: false,
+            details: `TextContains expectation threw error: ${String(err)}`,
+          };
+        }
+      }
+
+      // Run regex expectation
+      if (expectations.regex) {
+        try {
+          expectationResults.regex = await expectations.regex(
+            enrichedContext,
+            evalCase,
+            response
+          );
+        } catch (err) {
+          expectationResults.regex = {
+            pass: false,
+            details: `Regex expectation threw error: ${String(err)}`,
           };
         }
       }
