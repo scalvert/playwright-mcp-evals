@@ -21,7 +21,33 @@ npm install --save-dev playwright-mcp-evals @playwright/test @modelcontextprotoc
 
 ## Quick Start
 
-### 1. Configure Playwright
+### 0. Initialize a Project (CLI)
+
+The fastest way to get started is using the CLI:
+
+```bash
+npx playwright-mcp-evals init
+
+# Follow the interactive prompts:
+? Project name: my-mcp-tests
+? MCP transport type: stdio (local server process)
+? Server command (for stdio): node server.js
+? Install dependencies now? Yes
+
+✓ Project initialized successfully!
+
+Next steps:
+  cd my-mcp-tests
+  npm test
+```
+
+This creates:
+- `playwright.config.ts` - Configured for your MCP server
+- `tests/mcp.spec.ts` - Example tests
+- `data/example-dataset.json` - Sample eval dataset
+- `package.json` - With all dependencies
+
+### 1. Configure Playwright (Manual Setup)
 
 Add MCP configuration to your `playwright.config.ts`:
 
@@ -65,9 +91,47 @@ test('calls a tool', async ({ mcp }) => {
 });
 ```
 
-### 3. Run Data-Driven Evals
+### 3. Generate Eval Datasets (CLI)
 
-Create an eval dataset (`data/evals.json`):
+The easiest way to create datasets is using the interactive generator:
+
+```bash
+npx playwright-mcp-evals generate
+
+# Interactive workflow:
+? MCP transport type: stdio
+? Server command: node server.js
+✓ Connected to MCP server
+✓ Found 3 tools
+
+? Select tool to test: get_weather
+? Tool arguments (JSON): { "city": "London" }
+✓ Tool called successfully
+
+Response preview:
+{
+  "city": "London",
+  "temperature": 20,
+  "conditions": "Sunny"
+}
+
+📋 Suggested expectations:
+  Text contains:
+    - "London"
+    - "temperature"
+  Regex patterns:
+    - \d+
+
+? Test case ID: weather-london
+? Add text contains expectations? Yes
+? Add regex expectations? Yes
+✓ Added test case "weather-london"
+
+? Add another test case? No
+✓ Dataset saved to data/dataset.json
+```
+
+Or create datasets manually (`data/evals.json`):
 
 ```json
 {
@@ -366,6 +430,52 @@ interface MCPFixtureApi {
 
 - `runConformanceChecks(mcp, options)` - Run protocol conformance checks
 - `formatConformanceResult(result)` - Format check results
+
+## CLI Commands
+
+### `init` - Initialize Project
+
+```bash
+npx playwright-mcp-evals init [options]
+
+Options:
+  -n, --name <name>      Project name
+  -d, --dir <directory>  Target directory (default: ".")
+  -h, --help             Display help
+```
+
+Creates a complete project structure with:
+- Playwright configuration
+- Example tests
+- Sample eval dataset
+- TypeScript setup
+- Dependencies
+
+### `generate` - Generate Eval Dataset
+
+```bash
+npx playwright-mcp-evals generate [options]
+
+Options:
+  -c, --config <path>  Path to MCP config JSON file
+  -o, --output <path>  Output dataset path (default: "data/dataset.json")
+  -h, --help           Display help
+```
+
+Interactive workflow:
+1. Connects to your MCP server
+2. Lists available tools
+3. Lets you call tools with custom arguments
+4. Shows response preview
+5. **Auto-suggests expectations** based on response format
+6. Generates test cases
+7. Saves to JSON dataset
+
+Features:
+- ✅ Appends to existing datasets
+- ✅ Smart expectation suggestions (text contains, regex)
+- ✅ Response preview
+- ✅ Validation
 
 ## Examples
 
