@@ -12,7 +12,9 @@
 This framework provides **two complementary approaches** for testing MCP servers:
 
 ### 1. **Automated Testing** (Playwright Tests)
+
 Write deterministic, automated tests using standard Playwright patterns with MCP-specific fixtures. Perfect for:
+
 - Direct tool calls with expected outputs
 - Protocol conformance validation
 - Integration testing with your MCP server
@@ -26,7 +28,9 @@ test('read a file', async ({ mcp }) => {
 ```
 
 ### 2. **Evaluation Datasets** (Evals) ⚠️ Experimental
+
 Run deeper, more subjective analysis using dataset-driven evaluations. Includes:
+
 - Schema validation (deterministic)
 - Text and regex pattern matching (deterministic)
 - LLM-as-a-judge scoring (non-deterministic)
@@ -53,6 +57,7 @@ npm install --save-dev playwright-mcp-server-test @playwright/test zod
 ```
 
 **Note:** Additional dependencies for LLM-as-a-judge are optional and only needed if you plan to use semantic evaluation:
+
 ```bash
 # For OpenAI judge (optional)
 npm install --save-dev openai @openai/agents
@@ -86,7 +91,11 @@ Here's what a complete test suite looks like:
 ```typescript
 // tests/mcp.spec.ts
 import { test, expect } from 'playwright-mcp-server-test/fixtures/mcp';
-import { loadEvalDataset, runEvalDataset, createSchemaExpectation } from 'playwright-mcp-server-test';
+import {
+  loadEvalDataset,
+  runEvalDataset,
+  createSchemaExpectation,
+} from 'playwright-mcp-server-test';
 import { z } from 'zod';
 
 // Pattern 1: Direct tool testing
@@ -98,19 +107,19 @@ test('read a file', async ({ mcp }) => {
 // Pattern 2: Dataset-driven evals
 test('file operations eval', async ({ mcp }) => {
   const FileContentSchema = z.object({
-    content: z.string()
+    content: z.string(),
   });
 
   const dataset = await loadEvalDataset('./data/evals.json', {
-    schemas: { 'file-content': FileContentSchema }
+    schemas: { 'file-content': FileContentSchema },
   });
 
   const result = await runEvalDataset(
     {
       dataset,
       expectations: {
-        schema: createSchemaExpectation(dataset)
-      }
+        schema: createSchemaExpectation(dataset),
+      },
     },
     { mcp }
   );
@@ -176,6 +185,7 @@ export default defineConfig({
 The `examples/` directory contains complete working examples:
 
 **Real MCP Server Tests:**
+
 - [`filesystem-server/`](./examples/filesystem-server) - Test suite for Anthropic's Filesystem MCP server
   - Demonstrates `fixturify-project` for isolated test fixtures
   - Zod schema validation for JSON files
@@ -187,6 +197,7 @@ The `examples/` directory contains complete working examples:
   - 11 Playwright tests, 14 eval dataset cases
 
 **Basic Patterns:**
+
 - [`basic-playwright-usage/`](./examples/basic-playwright-usage) - Simple Playwright test patterns
 - [`basic-vitest-usage/`](./examples/basic-vitest-usage) - Vitest integration patterns
 
@@ -195,12 +206,16 @@ Each example includes complete test suites, eval datasets, and npm scripts. See 
 ## Key Concepts
 
 ### Fixtures
+
 Access MCP servers in tests via Playwright fixtures:
+
 - `mcpClient: Client` - Raw MCP SDK client
 - `mcp: MCPFixtureApi` - High-level test API with helper methods
 
 ### Expectations
+
 Validate tool responses with multiple expectation types:
+
 - **Exact Match** - Structured JSON equality
 - **Schema** - Zod validation
 - **Text Contains** - Substring matching (great for markdown)
@@ -210,7 +225,9 @@ Validate tool responses with multiple expectation types:
 See [Expectations Guide](./docs/expectations.md) for details.
 
 ### Transports
+
 Connect to MCP servers via:
+
 - **stdio** - Local server processes
 - **HTTP** - Remote servers
 
@@ -226,10 +243,7 @@ Add to your `playwright.config.ts`:
 
 ```typescript
 export default defineConfig({
-  reporter: [
-    ['list'],
-    ['playwright-mcp-server-test/reporters/mcpReporter'],
-  ],
+  reporter: [['list'], ['playwright-mcp-server-test/reporters/mcpReporter']],
 });
 ```
 
@@ -253,6 +267,7 @@ Contributions welcome! See [Development Guide](./docs/development.md) for setup 
 ## Credits
 
 Built with:
+
 - [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk)
 - [@playwright/test](https://playwright.dev)
 - [Zod](https://zod.dev)
