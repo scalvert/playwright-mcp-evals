@@ -2,15 +2,10 @@
 
 > Playwright-based testing framework for MCP servers
 
-⚠️ **Experimental Project** - This library is in active development. APIs may change, and we welcome contributions, feedback, and collaboration as we evolve the framework.
+> [!WARNING]
+> **Experimental Project** - This library is in active development. APIs may change, and we welcome contributions, feedback, and collaboration as we evolve the framework. See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 `playwright-mcp-server-test` is a comprehensive testing and evaluation framework for [Model Context Protocol (MCP)](https://modelcontextprotocol.io) servers. It provides first-class Playwright fixtures, data-driven eval datasets, and optional LLM-as-a-judge scoring.
-
-## 🤝 Contributing
-
-We'd love your help! Whether it's bug reports, feature requests, documentation improvements, or code contributions - all are welcome. This is an experimental project and community input is essential to its evolution.
-
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for details on how to get started.
 
 ## What's Included
 
