@@ -10,7 +10,7 @@
 
 We'd love your help! Whether it's bug reports, feature requests, documentation improvements, or code contributions - all are welcome. This is an experimental project and community input is essential to its evolution.
 
-See our [Development Guide](./docs/development.md) to get started.
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for details on how to get started.
 
 ## What's Included
 
