@@ -14,13 +14,13 @@ import {
   extractTextFromResponse,
   normalizeWhitespace,
   type MCPFixtureApi,
-} from 'playwright-mcp-evals';
+} from 'playwright-mcp-server-test';
 import {
   createMCPClientForConfig,
   createMCPFixtureApiWithTracking,
   closeMCPClient,
   type MCPConfig,
-} from 'playwright-mcp-evals';
+} from 'playwright-mcp-server-test';
 import { ConfigFileSchema, extractAndValidateJSON } from '../schemas/fileContentSchema.js';
 import path from 'path';
 

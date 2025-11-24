@@ -12,7 +12,7 @@ import {
  * Creates and connects an MCP client based on the provided configuration
  *
  * @param config - MCP configuration (will be validated)
- * @param clientInfo - Optional client information (defaults to playwright-mcp-evals)
+ * @param clientInfo - Optional client information (defaults to playwright-mcp-server-test)
  * @returns Connected MCP Client instance
  * @throws {Error} If config is invalid or connection fails
  *
@@ -44,7 +44,7 @@ export async function createMCPClientForConfig(
   // Create client with info
   const client = new Client(
     {
-      name: clientInfo?.name ?? 'playwright-mcp-evals',
+      name: clientInfo?.name ?? 'playwright-mcp-server-test',
       version: clientInfo?.version ?? '0.1.0',
     },
     {

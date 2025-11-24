@@ -3,7 +3,7 @@
   "description": "Comprehensive evaluation suite for the official Filesystem MCP server, demonstrating both direct and LLM host testing modes",
   "cases": [
     {
-      "id": "direct-read-readme",
+      "id": "should read readme.txt file",
       "description": "Direct API call to read readme.txt",
       "mode": "direct",
       "toolName": "read_file",
@@ -13,7 +13,7 @@
       "expectedTextContains": "Hello World"
     },
     {
-      "id": "direct-read-config-json",
+      "id": "should read and validate config.json structure",
       "description": "Read config.json and validate structure",
       "mode": "direct",
       "toolName": "read_file",
@@ -24,7 +24,7 @@
       "expectedSchemaName": "configFile"
     },
     {
-      "id": "direct-list-docs-directory",
+      "id": "should list files in docs directory",
       "description": "List files in the docs directory",
       "mode": "direct",
       "toolName": "list_directory",
@@ -34,7 +34,7 @@
       "expectedTextContains": ["guide.md", "api.md"]
     },
     {
-      "id": "direct-search-markdown-files",
+      "id": "should get directory tree with markdown files",
       "description": "Get directory tree showing all markdown files",
       "mode": "direct",
       "toolName": "directory_tree",
@@ -45,7 +45,7 @@
       "expectedRegex": ["guide\\.md", "api\\.md"]
     },
     {
-      "id": "direct-read-nested-file",
+      "id": "should read nested file in subdirectory",
       "description": "Read a file in a subdirectory",
       "mode": "direct",
       "toolName": "read_file",
@@ -55,7 +55,7 @@
       "expectedTextContains": ["# User Guide", "guide"]
     },
     {
-      "id": "direct-list-root-directory",
+      "id": "should list root directory contents",
       "description": "List all files and directories at root",
       "mode": "direct",
       "toolName": "list_directory",
@@ -65,7 +65,7 @@
       "expectedTextContains": ["readme.txt", "config.json", "docs", "data"]
     },
     {
-      "id": "llm-list-docs-openai",
+      "id": "should discover docs directory using OpenAI",
       "description": "LLM (OpenAI) discovers and lists files in docs directory",
       "mode": "llm_host",
       "toolName": "placeholder",
@@ -91,7 +91,7 @@
       }
     },
     {
-      "id": "llm-read-config-anthropic",
+      "id": "should extract version from config using Anthropic",
       "description": "LLM (Anthropic) reads config and extracts version",
       "mode": "llm_host",
       "toolName": "placeholder",
@@ -117,7 +117,7 @@
       }
     },
     {
-      "id": "llm-find-markdown-files",
+      "id": "should find all markdown files",
       "description": "LLM finds all markdown files",
       "mode": "llm_host",
       "toolName": "placeholder",
@@ -142,7 +142,7 @@
       }
     },
     {
-      "id": "llm-analyze-csv-data",
+      "id": "should analyze CSV data and count users",
       "description": "LLM reads CSV and provides analysis",
       "mode": "llm_host",
       "toolName": "placeholder",
@@ -167,7 +167,7 @@
       }
     },
     {
-      "id": "llm-list-all-files",
+      "id": "should list all project files",
       "description": "LLM provides complete file listing",
       "mode": "llm_host",
       "toolName": "placeholder",
@@ -188,7 +188,7 @@
       }
     },
     {
-      "id": "direct-exact-readme",
+      "id": "should exactly match readme content",
       "description": "Exact match validation for readme.txt content",
       "mode": "direct",
       "toolName": "read_file",
@@ -203,7 +203,7 @@
       ]
     },
     {
-      "id": "snapshot-readme-content",
+      "id": "should match readme snapshot",
       "description": "Snapshot test for readme.txt file content",
       "mode": "direct",
       "toolName": "read_file",
@@ -213,7 +213,7 @@
       "expectedSnapshot": "readme-content.txt"
     },
     {
-      "id": "snapshot-config-json",
+      "id": "should match config structure snapshot",
       "description": "Snapshot test for config.json structure",
       "mode": "direct",
       "toolName": "read_file",
@@ -223,7 +223,7 @@
       "expectedSnapshot": "config-structure.json"
     },
     {
-      "id": "snapshot-directory-tree",
+      "id": "should match directory tree snapshot",
       "description": "Snapshot test for directory tree structure",
       "mode": "direct",
       "toolName": "directory_tree",

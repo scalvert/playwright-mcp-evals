@@ -3,7 +3,7 @@
   "description": "Comprehensive evaluation suite for the official SQLite MCP server, demonstrating database operations with both direct and LLM host testing modes",
   "cases": [
     {
-      "id": "direct-query-all-users",
+      "id": "should query all users",
       "description": "Direct query to get all users",
       "mode": "direct",
       "toolName": "read_query",
@@ -13,7 +13,7 @@
       "expectedTextContains": ["Alice", "Bob", "Charlie", "Diana"]
     },
     {
-      "id": "direct-count-users",
+      "id": "should count total users",
       "description": "Count total number of users",
       "mode": "direct",
       "toolName": "read_query",
@@ -23,7 +23,7 @@
       "expectedTextContains": "4"
     },
     {
-      "id": "direct-list-tables",
+      "id": "should list all database tables",
       "description": "List all tables in the database",
       "mode": "direct",
       "toolName": "list_tables",
@@ -31,7 +31,7 @@
       "expectedTextContains": ["users", "posts"]
     },
     {
-      "id": "direct-describe-users-table",
+      "id": "should describe users table schema",
       "description": "Get schema for users table",
       "mode": "direct",
       "toolName": "describe_table",
@@ -41,7 +41,7 @@
       "expectedTextContains": ["id", "name", "email", "role", "INTEGER", "TEXT"]
     },
     {
-      "id": "direct-query-admins",
+      "id": "should query admin users",
       "description": "Query users with admin role",
       "mode": "direct",
       "toolName": "read_query",
@@ -51,7 +51,7 @@
       "expectedTextContains": ["Alice", "admin"]
     },
     {
-      "id": "direct-join-users-posts",
+      "id": "should join users and posts tables",
       "description": "JOIN query to get posts with user names",
       "mode": "direct",
       "toolName": "read_query",
@@ -61,7 +61,7 @@
       "expectedTextContains": ["Alice", "Bob", "Charlie"]
     },
     {
-      "id": "direct-count-published-posts",
+      "id": "should count published posts",
       "description": "Count published posts",
       "mode": "direct",
       "toolName": "read_query",
@@ -71,7 +71,7 @@
       "expectedTextContains": "4"
     },
     {
-      "id": "direct-query-user-post-count",
+      "id": "should count posts per user",
       "description": "Count posts per user",
       "mode": "direct",
       "toolName": "read_query",
@@ -81,7 +81,7 @@
       "expectedTextContains": ["Bob", "Alice", "Charlie"]
     },
     {
-      "id": "direct-describe-posts-table",
+      "id": "should describe posts table schema",
       "description": "Get schema for posts table",
       "mode": "direct",
       "toolName": "describe_table",
@@ -91,7 +91,7 @@
       "expectedTextContains": ["id", "user_id", "title", "published", "content"]
     },
     {
-      "id": "direct-query-published-posts",
+      "id": "should query only published posts",
       "description": "Query only published posts",
       "mode": "direct",
       "toolName": "read_query",
@@ -101,7 +101,7 @@
       "expectedTextContains": ["Getting Started", "Database Best Practices", "Performance Tuning"]
     },
     {
-      "id": "direct-query-moderator-users",
+      "id": "should find moderator users",
       "description": "Find users with moderator role",
       "mode": "direct",
       "toolName": "read_query",
@@ -111,7 +111,7 @@
       "expectedTextContains": ["Bob", "bob@example.com"]
     },
     {
-      "id": "direct-query-alice-posts",
+      "id": "should get all posts by Alice",
       "description": "Get all posts by Alice",
       "mode": "direct",
       "toolName": "read_query",
@@ -121,7 +121,7 @@
       "expectedTextContains": ["Getting Started", "Draft: Advanced Topics"]
     },
     {
-      "id": "direct-aggregate-published-ratio",
+      "id": "should calculate published vs draft ratio",
       "description": "Calculate published vs draft posts ratio",
       "mode": "direct",
       "toolName": "read_query",
@@ -131,7 +131,7 @@
       "expectedTextContains": ["published", "drafts"]
     },
     {
-      "id": "direct-error-invalid-syntax",
+      "id": "should handle invalid SQL syntax gracefully",
       "description": "Handle invalid SQL syntax gracefully",
       "mode": "direct",
       "toolName": "read_query",
@@ -141,7 +141,7 @@
       "expectedTextContains": "error"
     },
     {
-      "id": "direct-error-nonexistent-table",
+      "id": "should handle non-existent table query",
       "description": "Query non-existent table returns empty",
       "mode": "direct",
       "toolName": "describe_table",
@@ -151,7 +151,7 @@
       "expectedTextContains": "[]"
     },
     {
-      "id": "direct-exact-user-count",
+      "id": "should exactly match user count",
       "description": "Exact match validation for user count",
       "mode": "direct",
       "toolName": "read_query",
@@ -161,7 +161,7 @@
       "expectedTextContains": ["count", "4"]
     },
     {
-      "id": "direct-schema-list-tables",
+      "id": "should introspect database tables",
       "description": "Schema introspection - list all tables",
       "mode": "direct",
       "toolName": "list_tables",
@@ -169,7 +169,7 @@
       "expectedTextContains": ["users", "posts"]
     },
     {
-      "id": "direct-schema-describe-users-detailed",
+      "id": "should show detailed users table structure",
       "description": "Schema introspection - detailed users table structure",
       "mode": "direct",
       "toolName": "describe_table",
@@ -179,7 +179,7 @@
       "expectedTextContains": ["id", "name", "email", "role", "created_at", "INTEGER", "TEXT"]
     },
     {
-      "id": "llm-count-users-openai",
+      "id": "should count users using OpenAI",
       "description": "LLM (OpenAI) counts users in natural language",
       "mode": "llm_host",
       "toolName": "placeholder",
@@ -202,7 +202,7 @@
       }
     },
     {
-      "id": "llm-list-tables-anthropic",
+      "id": "should list tables using Anthropic",
       "description": "LLM (Anthropic) lists database tables",
       "mode": "llm_host",
       "toolName": "placeholder",
@@ -225,7 +225,7 @@
       }
     },
     {
-      "id": "llm-find-alice-posts",
+      "id": "should find Alice's published posts",
       "description": "LLM finds posts by specific user",
       "mode": "llm_host",
       "toolName": "placeholder",
@@ -247,7 +247,7 @@
       }
     },
     {
-      "id": "llm-admin-users",
+      "id": "should find admin users with LLM",
       "description": "LLM finds users with specific role",
       "mode": "llm_host",
       "toolName": "placeholder",
@@ -269,7 +269,7 @@
       }
     },
     {
-      "id": "llm-bob-post-count",
+      "id": "should count Bob's posts with LLM",
       "description": "LLM counts posts for specific user",
       "mode": "llm_host",
       "toolName": "placeholder",
@@ -291,7 +291,7 @@
       }
     },
     {
-      "id": "llm-table-schema",
+      "id": "should describe table structure with LLM",
       "description": "LLM describes table structure",
       "mode": "llm_host",
       "toolName": "placeholder",
@@ -316,7 +316,7 @@
       }
     },
     {
-      "id": "snapshot-users-list",
+      "id": "should match users list snapshot",
       "description": "Snapshot test for all users query result",
       "mode": "direct",
       "toolName": "read_query",
@@ -326,7 +326,7 @@
       "expectedSnapshot": "users-list.json"
     },
     {
-      "id": "snapshot-posts-with-users",
+      "id": "should match posts with users snapshot",
       "description": "Snapshot test for posts with user information",
       "mode": "direct",
       "toolName": "read_query",
@@ -336,7 +336,7 @@
       "expectedSnapshot": "posts-with-users.json"
     },
     {
-      "id": "snapshot-table-list",
+      "id": "should match table list snapshot",
       "description": "Snapshot test for database table listing",
       "mode": "direct",
       "toolName": "list_tables",

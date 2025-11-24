@@ -1,5 +1,5 @@
 import { Project } from 'fixturify-project';
-import { createMCPClientForConfig, closeMCPClient } from 'playwright-mcp-evals';
+import { createMCPClientForConfig, closeMCPClient } from 'playwright-mcp-server-test';
 
 const project = new Project('debug-test', '1.0.0', {
   files: {

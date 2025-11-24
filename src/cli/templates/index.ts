@@ -45,7 +45,7 @@ export default defineConfig({
   // Reporters: HTML and MCP Eval Reporter
   reporter: [
     ['html'],
-    ['playwright-mcp-evals/reporters/mcpEvalReporter', {
+    ['playwright-mcp-server-test/reporters/mcpEvalReporter', {
       outputDir: '.mcp-eval-results',
       autoOpen: true,
       historyLimit: 10
@@ -71,7 +71,7 @@ export default defineConfig({
 }
 
 export function getTestFileTemplate(_answers: ProjectAnswers): string {
-  return `import { test, expect } from 'playwright-mcp-evals/fixtures/mcp';
+  return `import { test, expect } from 'playwright-mcp-server-test/fixtures/mcp';
 import {
   runConformanceChecks,
   formatConformanceResult,
@@ -81,7 +81,7 @@ import {
   createSchemaExpectation,
   createTextContainsExpectation,
   createRegexExpectation,
-} from 'playwright-mcp-evals';
+} from 'playwright-mcp-server-test';
 import { z } from 'zod';
 
 test.describe('MCP Server Tests', () => {
@@ -168,7 +168,7 @@ export function getDatasetTemplate(_answers: ProjectAnswers): string {
   ],
   "metadata": {
     "version": "1.0",
-    "author": "playwright-mcp-evals",
+    "author": "playwright-mcp-server-test",
     "created": "${new Date().toISOString().split('T')[0]}"
   }
 }
@@ -226,7 +226,7 @@ export function getPackageJsonTemplate(projectName: string): string {
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.4",
     "@playwright/test": "^1.49.0",
-    "playwright-mcp-evals": "^0.1.0",
+    "playwright-mcp-server-test": "^0.1.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {

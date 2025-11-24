@@ -2,7 +2,7 @@
  * Simple mock MCP server for testing purposes
  *
  * This is a minimal MCP server that implements basic tools
- * for testing the playwright-mcp-evals library
+ * for testing the playwright-mcp-server-test library
  */
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';

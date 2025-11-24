@@ -58,7 +58,7 @@ export const test = base.extend<MCPFixtures>({
 
     // Create and connect client
     const client = await createMCPClientForConfig(mcpConfig, {
-      name: 'playwright-mcp-evals-test',
+      name: 'playwright-mcp-server-test',
       version: '0.1.0',
     });
 

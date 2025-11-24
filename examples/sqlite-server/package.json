@@ -1,7 +1,7 @@
 {
   "name": "sqlite-server-example",
   "version": "1.0.0",
-  "description": "Example using playwright-mcp-evals with SQLite MCP server",
+  "description": "Example using playwright-mcp-server-test with SQLite MCP server",
   "type": "module",
   "scripts": {
     "test": "playwright test",
@@ -22,7 +22,7 @@
     "@types/node": "^22.10.2",
     "better-sqlite3": "^11.7.0",
     "fixturify-project": "^7.0.0",
-    "playwright-mcp-evals": "file:../..",
+    "playwright-mcp-server-test": "file:../..",
     "typescript": "^5.7.2",
     "zod": "^3.24.1"
   }

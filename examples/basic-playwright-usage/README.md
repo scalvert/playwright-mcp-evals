@@ -1,6 +1,6 @@
 # Basic Playwright Usage Example
 
-This example demonstrates how to use `playwright-mcp-evals` in Playwright tests.
+This example demonstrates how to use `playwright-mcp-server-test` in Playwright tests.
 
 ## Setup
 
@@ -21,7 +21,7 @@ npx playwright test
 ## Example Test
 
 ```typescript
-import { test, expect } from 'playwright-mcp-evals/fixtures/mcp';
+import { test, expect } from 'playwright-mcp-server-test/fixtures/mcp';
 
 test('basic MCP test', async ({ mcp }) => {
   // List available tools

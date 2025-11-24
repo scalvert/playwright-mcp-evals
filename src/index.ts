@@ -1,7 +1,7 @@
 /**
- * playwright-mcp-evals
+ * playwright-mcp-server-test
  *
- * Playwright-based eval & testing framework for MCP servers
+ * Playwright-based testing framework for MCP servers
  *
  * @packageDocumentation
  */

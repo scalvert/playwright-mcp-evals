@@ -24,7 +24,7 @@ export default defineConfig({
   reporter: [
     ['list'],
     ['html', { open: 'never' }],
-    ['playwright-mcp-evals/reporters/mcpEvalReporter', {
+    ['playwright-mcp-server-test/reporters/mcpEvalReporter', {
       outputDir: '.mcp-eval-results',
       autoOpen: !process.env.CI,
       historyLimit: 10

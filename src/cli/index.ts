@@ -1,5 +1,5 @@
 /**
- * CLI entry point for playwright-mcp-evals
+ * CLI entry point for playwright-mcp-server-test
  */
 
 import { Command } from 'commander';
@@ -9,7 +9,7 @@ import { generate } from './commands/generate.js';
 const program = new Command();
 
 program
-  .name('playwright-mcp-evals')
+  .name('playwright-mcp-server-test')
   .description('CLI tools for MCP server evaluation and testing')
   .version('0.1.0');
 

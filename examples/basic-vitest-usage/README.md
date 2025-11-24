@@ -1,6 +1,6 @@
 # Basic Vitest Usage Example
 
-This example demonstrates how to use `playwright-mcp-evals` programmatically with Vitest for unit testing eval components.
+This example demonstrates how to use `playwright-mcp-server-test` programmatically with Vitest for unit testing eval components.
 
 ## Setup
 
@@ -17,7 +17,7 @@ import {
   loadEvalDataset,
   runEvalDataset,
   createExactExpectation,
-} from 'playwright-mcp-evals';
+} from 'playwright-mcp-server-test';
 
 describe('MCP Eval Tests', () => {
   it('should run evals programmatically', async () => {

@@ -1,7 +1,7 @@
 {
-  "name": "playwright-mcp-evals",
+  "name": "playwright-mcp-server-test",
   "version": "0.1.0",
-  "description": "Playwright-based eval & testing framework for MCP servers",
+  "description": "Playwright-based testing framework for MCP servers",
   "keywords": [
     "playwright",
     "mcp",
@@ -33,7 +33,7 @@
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "playwright-mcp-evals": "./dist/cli/index.js"
+    "playwright-mcp-server-test": "./dist/cli/index.js"
   },
   "files": [
     "dist",

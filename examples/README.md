@@ -1,6 +1,6 @@
 # MCP Eval Examples
 
-This directory contains complete working examples demonstrating how to use `playwright-mcp-evals` for testing real MCP servers.
+This directory contains complete working examples demonstrating how to use `playwright-mcp-server-test` for testing real MCP servers.
 
 ## Available Examples
 

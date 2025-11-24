@@ -1,8 +1,8 @@
-# playwright-mcp-evals
+# playwright-mcp-server-test
 
-> Playwright-based eval & testing framework for MCP servers
+> Playwright-based testing framework for MCP servers
 
-`playwright-mcp-evals` is a comprehensive testing and evaluation framework for [Model Context Protocol (MCP)](https://modelcontextprotocol.io) servers. It provides first-class Playwright fixtures, data-driven eval harnesses, and optional LLM-as-a-judge scoring.
+`playwright-mcp-server-test` is a comprehensive testing and evaluation framework for [Model Context Protocol (MCP)](https://modelcontextprotocol.io) servers. It provides first-class Playwright fixtures, data-driven eval datasets, and optional LLM-as-a-judge scoring.
 
 ## Features
 
@@ -16,7 +16,7 @@
 ## Installation
 
 ```bash
-npm install --save-dev playwright-mcp-evals @playwright/test @modelcontextprotocol/sdk zod
+npm install --save-dev playwright-mcp-server-test @playwright/test @modelcontextprotocol/sdk zod
 ```
 
 ## Quick Start
@@ -26,7 +26,7 @@ npm install --save-dev playwright-mcp-evals @playwright/test @modelcontextprotoc
 The fastest way to get started is using the CLI:
 
 ```bash
-npx playwright-mcp-evals init
+npx playwright-mcp-server-test init
 
 # Follow the interactive prompts:
 ? Project name: my-mcp-tests
@@ -42,6 +42,7 @@ Next steps:
 ```
 
 This creates:
+
 - `playwright.config.ts` - Configured for your MCP server
 - `tests/mcp.spec.ts` - Example tests
 - `data/example-dataset.json` - Sample eval dataset
@@ -78,7 +79,7 @@ export default defineConfig({
 ### 2. Use MCP Fixtures in Tests
 
 ```typescript
-import { test, expect } from 'playwright-mcp-evals/fixtures/mcp';
+import { test, expect } from 'playwright-mcp-server-test/fixtures/mcp';
 
 test('lists tools from MCP server', async ({ mcp }) => {
   const tools = await mcp.listTools();
@@ -96,7 +97,7 @@ test('calls a tool', async ({ mcp }) => {
 The easiest way to create datasets is using the interactive generator:
 
 ```bash
-npx playwright-mcp-evals generate
+npx playwright-mcp-server-test generate
 
 # Interactive workflow:
 ? MCP transport type: stdio
@@ -150,12 +151,12 @@ Or create datasets manually (`data/evals.json`):
 Run evals in your test:
 
 ```typescript
-import { test } from 'playwright-mcp-evals/fixtures/mcp';
+import { test } from 'playwright-mcp-server-test/fixtures/mcp';
 import {
   loadEvalDataset,
   runEvalDataset,
   createSchemaExpectation,
-} from 'playwright-mcp-evals';
+} from 'playwright-mcp-server-test';
 import { z } from 'zod';
 
 test('run weather evals', async ({ mcp }) => {
@@ -217,7 +218,7 @@ The framework supports multiple types of expectations to validate MCP tool respo
 Validates exact equality of structured data (JSON):
 
 ```typescript
-import { createExactExpectation } from 'playwright-mcp-evals';
+import { createExactExpectation } from 'playwright-mcp-server-test';
 
 const expectations = {
   exact: createExactExpectation(),
@@ -237,7 +238,7 @@ const expectations = {
 Validates that response text contains expected substrings (ideal for markdown/unstructured text):
 
 ```typescript
-import { createTextContainsExpectation } from 'playwright-mcp-evals';
+import { createTextContainsExpectation } from 'playwright-mcp-server-test';
 
 const expectations = {
   textContains: createTextContainsExpectation(),
@@ -264,7 +265,7 @@ const expectations = {
 Validates that response text matches regex patterns (powerful for format validation):
 
 ```typescript
-import { createRegexExpectation } from 'playwright-mcp-evals';
+import { createRegexExpectation } from 'playwright-mcp-server-test';
 
 const expectations = {
   regex: createRegexExpectation(),
@@ -291,7 +292,7 @@ const expectations = {
 Validates using Zod schemas:
 
 ```typescript
-import { createSchemaExpectation } from 'playwright-mcp-evals';
+import { createSchemaExpectation } from 'playwright-mcp-server-test';
 import { z } from 'zod';
 
 const dataset = await loadEvalDataset('./evals.json', {
@@ -317,7 +318,7 @@ Semantic evaluation using LLMs:
 import {
   createJudgeExpectation,
   createLLMJudgeClient,
-} from 'playwright-mcp-evals';
+} from 'playwright-mcp-server-test';
 
 const judgeClient = createLLMJudgeClient({
   provider: 'openai',
@@ -374,7 +375,7 @@ Each eval case will use the appropriate expectation based on which fields are de
 Check MCP spec compliance:
 
 ```typescript
-import { runConformanceChecks } from 'playwright-mcp-evals';
+import { runConformanceChecks } from 'playwright-mcp-server-test';
 
 test('MCP conformance', async ({ mcp }) => {
   const result = await runConformanceChecks(mcp, {
@@ -436,7 +437,7 @@ interface MCPFixtureApi {
 ### `init` - Initialize Project
 
 ```bash
-npx playwright-mcp-evals init [options]
+npx playwright-mcp-server-test init [options]
 
 Options:
   -n, --name <name>      Project name
@@ -445,6 +446,7 @@ Options:
 ```
 
 Creates a complete project structure with:
+
 - Playwright configuration
 - Example tests
 - Sample eval dataset
@@ -454,7 +456,7 @@ Creates a complete project structure with:
 ### `generate` - Generate Eval Dataset
 
 ```bash
-npx playwright-mcp-evals generate [options]
+npx playwright-mcp-server-test generate [options]
 
 Options:
   -c, --config <path>  Path to MCP config JSON file
@@ -463,6 +465,7 @@ Options:
 ```
 
 Interactive workflow:
+
 1. Connects to your MCP server
 2. Lists available tools
 3. Lets you call tools with custom arguments
@@ -472,6 +475,7 @@ Interactive workflow:
 7. Saves to JSON dataset
 
 Features:
+
 - ✅ Appends to existing datasets
 - ✅ Smart expectation suggestions (text contains, regex)
 - ✅ Response preview
@@ -541,6 +545,7 @@ const result = await runEvalDataset(
 See the `examples/` directory for complete working examples:
 
 **Real MCP Server Examples:**
+
 - `filesystem-server/` - Test suite for official Anthropic Filesystem MCP server
   - Demonstrates `fixturify-project` for isolated test fixtures
   - Zod schema validation for JSON files
@@ -551,16 +556,83 @@ See the `examples/` directory for complete working examples:
   - 11 Playwright tests, 14 eval dataset cases
 
 **Basic Usage Examples:**
+
 - `basic-playwright-usage/` - Simple Playwright test patterns
 - `basic-vitest-usage/` - Vitest integration patterns
 
 Each example includes:
+
 - Complete test suite with fixtures
 - Eval dataset with direct and LLM modes
 - npm scripts for running tests (`npm test`, `npm run test:ui`)
 - HTML and UI reporters via Playwright
 
 See `examples/README.md` for detailed documentation and best practices.
+
+## UI Reporter
+
+`playwright-mcp-server-test` includes a custom Playwright reporter with a beautiful, interactive web UI for visualizing test results. The reporter automatically tracks both traditional Playwright tests and eval dataset results in a unified view.
+
+![MCP Test Reporter UI](./ui.png)
+
+### Features
+
+- **📊 Dual Test Tracking** - Automatically captures both Playwright test results and eval dataset executions
+- **🎯 Tab-Based Filtering** - Switch between All Results, Eval Datasets, and Test Suites views
+- **📈 Real-Time Metrics** - Pass rate, total tests, duration, and expectation breakdowns
+- **🔍 Detailed Inspection** - Click any result to see full tool call details, responses, and validation results
+- **🌓 Dark Mode** - Automatic theme detection with manual toggle
+- **📱 Responsive Design** - Works on desktop and mobile browsers
+
+### Configuration
+
+Add the reporter to your `playwright.config.ts`:
+
+```typescript
+import { defineConfig } from '@playwright/test';
+
+export default defineConfig({
+  reporter: [
+    ['list'], // Keep the terminal output
+    ['playwright-mcp-server-test/reporters/mcpEvalReporter'], // Add the UI reporter
+  ],
+  // ... rest of config
+});
+```
+
+### Usage
+
+The reporter automatically generates an HTML report after each test run:
+
+```bash
+npm test
+
+# Report generated at: .mcp-eval-results/latest/index.html
+# Opens automatically in your default browser
+```
+
+The UI shows:
+
+- **Metrics Cards** - High-level summary (total, passed, failed, pass rate, duration)
+- **Results Table** - All test results with filtering, sorting, and search
+- **Detail Modal** - Full inspection of tool calls, responses, and expectations
+- **Visual Icons** - BarChart3 for eval datasets, FlaskConical for test suites
+
+### Results Organization
+
+Results are saved to `.mcp-eval-results/`:
+
+```
+.mcp-eval-results/
+├── latest/                    # Symlink to most recent run
+│   ├── index.html            # Main UI
+│   ├── data.js               # Test results data
+│   └── app.js, styles.css    # UI assets
+└── run-2025-01-24T12-00-00/  # Timestamped runs
+    └── ...
+```
+
+**Tip:** Add `.mcp-eval-results/` to your `.gitignore` to avoid committing generated reports.
 
 ## Development
 
