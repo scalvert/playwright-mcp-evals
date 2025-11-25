@@ -1,5 +1,5 @@
 /**
- * playwright-mcp-server-test
+ * @mcp-testing/server-tester
  *
  * Playwright-based testing framework for MCP servers
  *

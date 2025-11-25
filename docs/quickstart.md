@@ -1,6 +1,6 @@
 # Quick Start Guide
 
-This guide covers detailed setup and configuration for `playwright-mcp-server-test`.
+This guide covers detailed setup and configuration for `@mcp-testing/server-tester`.
 
 ## Table of Contents
 
@@ -15,7 +15,7 @@ This guide covers detailed setup and configuration for `playwright-mcp-server-te
 The fastest way to get started is using the CLI:
 
 ```bash
-npx playwright-mcp-server-test init
+npx mcp-test init
 
 # Follow the interactive prompts:
 ? Project name: my-mcp-tests
@@ -46,7 +46,7 @@ If you prefer to set up your project manually:
 ### 1. Install Dependencies
 
 ```bash
-npm install --save-dev playwright-mcp-server-test @playwright/test @modelcontextprotocol/sdk zod
+npm install --save-dev @mcp-testing/server-tester @playwright/test @modelcontextprotocol/sdk zod
 ```
 
 ### 2. Configure Playwright
@@ -84,7 +84,7 @@ See the [Transports Guide](./transports.md) for HTTP and other transport configu
 Import the test fixtures and use the `mcp` fixture in your tests:
 
 ```typescript
-import { test, expect } from 'playwright-mcp-server-test/fixtures/mcp';
+import { test, expect } from '@mcp-testing/server-tester/fixtures/mcp';
 
 test('lists tools from MCP server', async ({ mcp }) => {
   const tools = await mcp.listTools();
@@ -110,7 +110,7 @@ See the [API Reference](./api-reference.md) for complete fixture documentation.
 The easiest way to create datasets is using the interactive generator:
 
 ```bash
-npx playwright-mcp-server-test generate
+npx mcp-test generate
 
 # Interactive workflow:
 ? MCP transport type: stdio
@@ -170,12 +170,12 @@ Create a dataset file manually (e.g., `data/evals.json`):
 Use the `runEvalDataset` function in your tests:
 
 ```typescript
-import { test, expect } from 'playwright-mcp-server-test/fixtures/mcp';
+import { test, expect } from '@mcp-testing/server-tester/fixtures/mcp';
 import {
   loadEvalDataset,
   runEvalDataset,
   createSchemaExpectation,
-} from 'playwright-mcp-server-test';
+} from '@mcp-testing/server-tester';
 import { z } from 'zod';
 
 test('run weather evals', async ({ mcp }) => {

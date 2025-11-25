@@ -1,4 +1,4 @@
-import { test, expect } from 'playwright-mcp-server-test/fixtures/mcp';
+import { test, expect } from '@mcp-testing/server-tester/fixtures/mcp';
 import {
   loadEvalDataset,
   runEvalDataset,
@@ -6,7 +6,7 @@ import {
   createRegexExpectation,
   runConformanceChecks,
   extractTextFromResponse,
-} from 'playwright-mcp-server-test';
+} from '@mcp-testing/server-tester';
 
 /**
  * Glean MCP Server Test Suite
@@ -44,8 +44,6 @@ test.describe('MCP Protocol Conformance', () => {
     expect(info).toBeTruthy();
     expect(info?.name).toBeTruthy();
     expect(info?.version).toBeTruthy();
-
-    console.log(`Server: ${info?.name} v${info?.version}`);
   });
 
   test('should list available tools', async ({ mcp }) => {
@@ -64,8 +62,6 @@ test.describe('MCP Protocol Conformance', () => {
         expect(typeof tool.description).toBe('string');
       }
     });
-
-    console.log(`Found ${tools.length} tools: ${tools.map(t => t.name).join(', ')}`);
   });
 
   test('should return error for invalid tool', async ({ mcp }) => {
@@ -95,10 +91,9 @@ test.describe('MCP Protocol Conformance', () => {
       const resources = await mcp.listResources();
       // If supported, should return array
       expect(Array.isArray(resources)).toBe(true);
-      console.log(`Resources supported: ${resources.length} resources`);
     } catch (error) {
       // Resources may not be supported - that's ok
-      console.log('Resources not supported by this server');
+      expect(error).toBeTruthy();
     }
   });
 
@@ -107,10 +102,9 @@ test.describe('MCP Protocol Conformance', () => {
       const prompts = await mcp.listPrompts();
       // If supported, should return array
       expect(Array.isArray(prompts)).toBe(true);
-      console.log(`Prompts supported: ${prompts.length} prompts`);
     } catch (error) {
       // Prompts may not be supported - that's ok
-      console.log('Prompts not supported by this server');
+      expect(error).toBeTruthy();
     }
   });
 });
@@ -187,20 +181,6 @@ test.describe('Glean MCP Server Evaluation', () => {
       },
       { mcp, testInfo }
     );
-
-    // Log results summary
-    console.log(`\nResults: ${result.passed}/${result.total} passed`);
-    console.log(`Pass rate: ${((result.passed / result.total) * 100).toFixed(1)}%\n`);
-
-    // Log failed cases for debugging
-    if (result.failed > 0) {
-      console.log('Failed cases:');
-      result.caseResults
-        .filter((r) => !r.pass)
-        .forEach((r) => {
-          console.log(`  - ${r.id}: ${r.error || 'See expectations for details'}`);
-        });
-    }
 
     // Expect at least 75% pass rate (12/16 with LLM host mode tests disabled)
     const passRate = result.passed / result.total;
@@ -302,13 +282,6 @@ test.describe('Glean Tool Availability', () => {
         'chat',
       ],
       validateSchemas: true,
-    });
-
-    // Log conformance results
-    console.log('\nGlean Conformance Check Results:');
-    result.checks.forEach(check => {
-      const status = check.pass ? '✓' : '✗';
-      console.log(`  ${status} ${check.name}: ${check.message}`);
     });
 
     // All checks should pass for Glean

@@ -1,11 +1,11 @@
-# playwright-mcp-server-test
+# @mcp-testing/server-tester
 
 > Playwright-based testing framework for MCP servers
 
 > [!WARNING]
 > **Experimental Project** - This library is in active development. APIs may change, and we welcome contributions, feedback, and collaboration as we evolve the framework. See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
-`playwright-mcp-server-test` is a comprehensive testing and evaluation framework for [Model Context Protocol (MCP)](https://modelcontextprotocol.io) servers. It provides first-class Playwright fixtures, data-driven eval datasets, and optional LLM-as-a-judge scoring.
+`@mcp-testing/server-tester` is a comprehensive testing and evaluation framework for [Model Context Protocol (MCP)](https://modelcontextprotocol.io) servers. It provides first-class Playwright fixtures, data-driven eval datasets, and optional LLM-as-a-judge scoring.
 
 ## What's Included
 
@@ -53,7 +53,7 @@ expect(result.passed).toBe(result.total);
 ## Installation
 
 ```bash
-npm install --save-dev playwright-mcp-server-test @playwright/test zod
+npm install --save-dev @mcp-testing/server-tester @playwright/test zod
 ```
 
 **Note:** Additional dependencies for LLM-as-a-judge are optional and only needed if you plan to use semantic evaluation:
@@ -73,7 +73,7 @@ npm install --save-dev @anthropic-ai/sdk
 The fastest way to get started:
 
 ```bash
-npx playwright-mcp-server-test init
+npx mcp-test init
 
 # Follow the interactive prompts to create:
 # - playwright.config.ts (configured for your MCP server)
@@ -90,12 +90,12 @@ Here's what a complete test suite looks like (following the **layered testing pa
 
 ```typescript
 // tests/mcp.spec.ts
-import { test, expect } from 'playwright-mcp-server-test/fixtures/mcp';
+import { test, expect } from '@mcp-testing/server-tester/fixtures/mcp';
 import {
   loadEvalDataset,
   runEvalDataset,
   createSchemaExpectation,
-} from 'playwright-mcp-server-test';
+} from '@mcp-testing/server-tester';
 import { z } from 'zod';
 
 // ============================================================================
@@ -277,7 +277,7 @@ Add to your `playwright.config.ts`:
 
 ```typescript
 export default defineConfig({
-  reporter: [['list'], ['playwright-mcp-server-test/reporters/mcpReporter']],
+  reporter: [['list'], ['@mcp-testing/server-tester/reporters/mcpReporter']],
 });
 ```
 

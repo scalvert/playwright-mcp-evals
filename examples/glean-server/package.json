@@ -1,7 +1,7 @@
 {
   "name": "glean-server-example",
   "version": "1.0.0",
-  "description": "Example using playwright-mcp-server-test with Glean HTTP MCP server",
+  "description": "Example using @mcp-testing/server-tester with Glean HTTP MCP server",
   "type": "module",
   "scripts": {
     "test": "playwright test",
@@ -18,7 +18,7 @@
   ],
   "devDependencies": {
     "@types/node": "^22.10.2",
-    "playwright-mcp-server-test": "file:../..",
+    "@mcp-testing/server-tester": "file:../..",
     "typescript": "^5.7.2",
     "dotenv": "^16.4.5"
   }

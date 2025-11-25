@@ -19,7 +19,7 @@ Validates exact equality of structured data (JSON). Best for predictable, struct
 ### Usage
 
 ```typescript
-import { createExactExpectation } from 'playwright-mcp-server-test';
+import { createExactExpectation } from '@mcp-testing/server-tester';
 
 const expectations = {
   exact: createExactExpectation(),
@@ -46,7 +46,7 @@ Validates that response text contains expected substrings. Ideal for markdown or
 ### Usage
 
 ```typescript
-import { createTextContainsExpectation } from 'playwright-mcp-server-test';
+import { createTextContainsExpectation } from '@mcp-testing/server-tester';
 
 const expectations = {
   textContains: createTextContainsExpectation(),
@@ -89,7 +89,7 @@ Validates that response text matches regex patterns. Powerful for format validat
 ### Usage
 
 ```typescript
-import { createRegexExpectation } from 'playwright-mcp-server-test';
+import { createRegexExpectation } from '@mcp-testing/server-tester';
 
 const expectations = {
   regex: createRegexExpectation(),
@@ -133,7 +133,7 @@ Validates response structure and types using Zod schemas. Best for structured da
 ### Usage
 
 ```typescript
-import { createSchemaExpectation } from 'playwright-mcp-server-test';
+import { createSchemaExpectation } from '@mcp-testing/server-tester';
 import { z } from 'zod';
 
 const dataset = await loadEvalDataset('./evals.json', {
@@ -206,7 +206,7 @@ Semantic evaluation using LLMs (OpenAI or Anthropic). Best for subjective criter
 import {
   createJudgeExpectation,
   createLLMJudgeClient,
-} from 'playwright-mcp-server-test';
+} from '@mcp-testing/server-tester';
 
 const judgeClient = createLLMJudgeClient({
   provider: 'openai',

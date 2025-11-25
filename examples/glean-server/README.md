@@ -1,6 +1,6 @@
 # Glean MCP Server Example
 
-This example demonstrates testing a production HTTP MCP server (Glean) using `playwright-mcp-server-test`.
+This example demonstrates testing a production HTTP MCP server (Glean) using `@mcp-testing/server-tester`.
 
 ## What This Example Demonstrates
 
@@ -27,7 +27,7 @@ npm install
 ```
 
 This installs:
-- `playwright-mcp-server-test` - Evaluation framework (includes Playwright)
+- `@mcp-testing/server-tester` - Evaluation framework (includes Playwright)
 - `dotenv` - Environment variable management
 - `typescript` - TypeScript support
 
@@ -197,7 +197,7 @@ Glean MCP server returns **structured markdown** responses, not JSON. Use text-b
 ### Text Extraction
 
 ```typescript
-import { extractTextFromResponse } from 'playwright-mcp-server-test';
+import { extractTextFromResponse } from '@mcp-testing/server-tester';
 
 const result = await mcp.callTool('search', {
   query: 'API documentation'
@@ -332,7 +332,7 @@ Use regex patterns for complex validation:
 ## Learn More
 
 - [Glean MCP Server Documentation](https://docs.glean.com/mcp)
-- [playwright-mcp-server-test Documentation](../../README.md)
+- [@mcp-testing/server-tester Documentation](../../README.md)
 - [Playwright Test](https://playwright.dev/docs/test-intro)
 
 ## Project Structure

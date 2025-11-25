@@ -27,7 +27,7 @@ import type { EvalCaseResult } from '../evals/evalRunner.js';
  * // playwright.config.ts
  * export default defineConfig({
  *   reporter: [
- *     ['playwright-mcp-server-test/reporters/mcpReporter', {
+ *     ['@mcp-testing/server-tester/reporters/mcpReporter', {
  *       outputDir: '.mcp-test-results',
  *       autoOpen: true,
  *       historyLimit: 10

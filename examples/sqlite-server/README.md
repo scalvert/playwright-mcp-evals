@@ -1,6 +1,6 @@
 # SQLite MCP Server Example
 
-This example demonstrates testing the [SQLite MCP Server](https://github.com/johnnyoshika/mcp-server-sqlite-npx) using `playwright-mcp-server-test`.
+This example demonstrates testing the [SQLite MCP Server](https://github.com/johnnyoshika/mcp-server-sqlite-npx) using `@mcp-testing/server-tester`.
 
 ## What This Example Demonstrates
 
@@ -25,7 +25,7 @@ npm install
 
 This will install:
 - `@playwright/test` - Test framework
-- `playwright-mcp-server-test` - Evaluation framework
+- `@mcp-testing/server-tester` - Evaluation framework
 - `fixturify-project` - Test fixture management
 - `better-sqlite3` - SQLite database for creating test databases
 - `zod` - Schema validation
@@ -223,7 +223,7 @@ sqlite-server/
 ## Learn More
 
 - [MCP SQLite Server (npx)](https://github.com/johnnyoshika/mcp-server-sqlite-npx)
-- [playwright-mcp-server-test Documentation](../../README.md)
+- [@mcp-testing/server-tester Documentation](../../README.md)
 - [better-sqlite3](https://github.com/WiseLibs/better-sqlite3)
 - [fixturify-project](https://www.npmjs.com/package/fixturify-project)
 

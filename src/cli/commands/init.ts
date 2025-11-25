@@ -180,7 +180,7 @@ export async function init(options: InitOptions): Promise<void> {
     console.log(chalk.gray('  npm test'));
     console.log();
     console.log(chalk.cyan('To generate a dataset:'));
-    console.log(chalk.gray('  npx playwright-mcp-server-test generate'));
+    console.log(chalk.gray('  npx mcp-test generate'));
     console.log();
   } catch (error) {
     spinner.fail('Failed to create project');

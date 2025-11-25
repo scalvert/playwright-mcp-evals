@@ -1,6 +1,6 @@
 # UI Reporter Guide
 
-`playwright-mcp-server-test` includes a custom Playwright reporter with an interactive web UI for visualizing test results.
+`@mcp-testing/server-tester` includes a custom Playwright reporter with an interactive web UI for visualizing test results.
 
 ![MCP Test Reporter UI](../ui.png)
 
@@ -23,7 +23,7 @@ import { defineConfig } from '@playwright/test';
 export default defineConfig({
   reporter: [
     ['list'], // Keep the terminal output
-    ['playwright-mcp-server-test/reporters/mcpReporter'], // Add the UI reporter
+    ['@mcp-testing/server-tester/reporters/mcpReporter'], // Add the UI reporter
   ],
   // ... rest of config
 });
@@ -222,7 +222,7 @@ export default defineConfig({
   reporter: [
     ['list'],
     [
-      'playwright-mcp-server-test/reporters/mcpReporter',
+      '@mcp-testing/server-tester/reporters/mcpReporter',
       { outputDir: 'custom-results' }
     ],
   ],

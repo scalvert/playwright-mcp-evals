@@ -1,18 +1,23 @@
 {
-  "name": "playwright-mcp-server-test",
+  "name": "@mcp-testing/server-tester",
   "version": "0.1.0",
-  "description": "Playwright-based testing framework for MCP servers",
+  "description": "Playwright-based testing and evaluation framework for MCP servers",
   "keywords": [
     "playwright",
     "mcp",
     "model-context-protocol",
     "evals",
     "testing",
-    "llm"
+    "llm",
+    "server-testing"
   ],
   "license": "MIT",
   "author": "",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mcp-testing/server-tester.git"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -33,7 +38,7 @@
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "playwright-mcp-server-test": "./dist/cli/index.js"
+    "mcp-test": "./dist/cli/index.js"
   },
   "files": [
     "dist",

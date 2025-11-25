@@ -57,13 +57,14 @@ describe('datasetTypes', () => {
       expect(() => validateEvalCase(evalCase)).toThrow(ZodError);
     });
 
-    it('should reject eval case without toolName', () => {
+    it('should accept eval case without toolName (for llm_host mode)', () => {
       const evalCase = {
         id: 'test-1',
-        args: {},
+        mode: 'llm_host' as const,
+        scenario: 'Get the weather for London',
       };
 
-      expect(() => validateEvalCase(evalCase)).toThrow(ZodError);
+      expect(() => validateEvalCase(evalCase)).not.toThrow();
     });
 
     it('should reject eval case with empty toolName', () => {
@@ -76,13 +77,14 @@ describe('datasetTypes', () => {
       expect(() => validateEvalCase(evalCase)).toThrow(ZodError);
     });
 
-    it('should reject eval case without args', () => {
+    it('should accept eval case without args (for llm_host mode)', () => {
       const evalCase = {
         id: 'test-1',
-        toolName: 'get_weather',
+        mode: 'llm_host' as const,
+        scenario: 'Get the weather for London',
       };
 
-      expect(() => validateEvalCase(evalCase)).toThrow(ZodError);
+      expect(() => validateEvalCase(evalCase)).not.toThrow();
     });
 
     it('should accept eval case with complex args', () => {
@@ -198,8 +200,8 @@ describe('datasetTypes', () => {
         name: 'test-dataset',
         cases: [
           {
-            id: 'case-1',
-            // missing toolName
+            // missing id - this is always required
+            toolName: 'get_weather',
             args: {},
           },
         ],

@@ -1,6 +1,6 @@
 # Development Guide
 
-This guide covers contributing to `playwright-mcp-server-test`, running tests, and building the library.
+This guide covers contributing to `@mcp-testing/server-tester`, running tests, and building the library.
 
 ## Table of Contents
 
@@ -23,8 +23,8 @@ This guide covers contributing to `playwright-mcp-server-test`, running tests, a
 Clone the repository and install dependencies:
 
 ```bash
-git clone https://github.com/your-org/playwright-mcp-server-test.git
-cd playwright-mcp-server-test
+git clone https://github.com/your-org/@mcp-testing/server-tester.git
+cd @mcp-testing/server-tester
 npm install
 ```
 
@@ -173,7 +173,7 @@ npm run build      # Build succeeds
 ## Project Structure
 
 ```
-playwright-mcp-server-test/
+@mcp-testing/server-tester/
 ├── src/
 │   ├── config/       # MCPConfig types + Zod validation
 │   ├── mcp/          # Client factory, fixtures, MCPFixtureApi

@@ -1,6 +1,6 @@
 # CLI Commands
 
-The `playwright-mcp-server-test` CLI provides interactive commands to help you get started quickly and generate eval datasets.
+The `@mcp-testing/server-tester` CLI provides interactive commands to help you get started quickly and generate eval datasets.
 
 ## Table of Contents
 
@@ -14,7 +14,7 @@ Create a complete project structure with configuration, tests, and example datas
 ### Usage
 
 ```bash
-npx playwright-mcp-server-test init [options]
+npx mcp-test init [options]
 ```
 
 ### Options
@@ -28,7 +28,7 @@ npx playwright-mcp-server-test init [options]
 Running `init` without options starts an interactive setup:
 
 ```bash
-npx playwright-mcp-server-test init
+npx mcp-test init
 
 ? Project name: my-mcp-tests
 ? MCP transport type: stdio (local server process)
@@ -84,7 +84,7 @@ export default defineConfig({
 **tests/mcp.spec.ts:**
 
 ```typescript
-import { test, expect } from 'playwright-mcp-server-test/fixtures/mcp';
+import { test, expect } from '@mcp-testing/server-tester/fixtures/mcp';
 
 test('lists tools', async ({ mcp }) => {
   const tools = await mcp.listTools();
@@ -114,7 +114,7 @@ Interactively create eval datasets by connecting to your MCP server and generati
 ### Usage
 
 ```bash
-npx playwright-mcp-server-test generate [options]
+npx mcp-test generate [options]
 ```
 
 ### Options
@@ -128,7 +128,7 @@ npx playwright-mcp-server-test generate [options]
 The `generate` command guides you through creating test cases:
 
 ```bash
-npx playwright-mcp-server-test generate
+npx mcp-test generate
 
 # Step 1: Connect to MCP server
 ? MCP transport type: stdio
@@ -202,7 +202,7 @@ Response preview:
 The generator can append to existing dataset files:
 
 ```bash
-npx playwright-mcp-server-test generate -o data/existing.json
+npx mcp-test generate -o data/existing.json
 
 ✓ Found existing dataset with 5 cases
 ? Add new test cases? Yes
@@ -229,7 +229,7 @@ For complex MCP configurations, use a JSON config file:
 Then generate with:
 
 ```bash
-npx playwright-mcp-server-test generate -c mcp-config.json
+npx mcp-test generate -c mcp-config.json
 ```
 
 ### Output Format
@@ -268,7 +268,7 @@ The generated dataset is a JSON file:
 
 ```bash
 # Generate dataset for a weather service
-npx playwright-mcp-server-test generate -o data/weather-tests.json
+npx mcp-test generate -o data/weather-tests.json
 
 # Test case 1: Sunny day
 ? Tool: get_weather

@@ -20,7 +20,7 @@ export default defineConfig({
   reporter: [
     ['list'],
     ['html', { open: 'never' }],
-    ['playwright-mcp-server-test/reporters/mcpReporter', {
+    ['@mcp-testing/server-tester/reporters/mcpReporter', {
       outputDir: '.mcp-test-results',
       autoOpen: !process.env.CI,
       historyLimit: 10

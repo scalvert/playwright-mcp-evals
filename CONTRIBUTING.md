@@ -1,4 +1,4 @@
-# Contributing to playwright-mcp-server-test
+# Contributing to @mcp-testing/server-tester
 
 Thank you for your interest in contributing! This project is experimental and community input is essential to its evolution. We welcome all types of contributions.
 
@@ -22,8 +22,8 @@ Thank you for your interest in contributing! This project is experimental and co
 1. Fork the repository
 2. Clone your fork:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/playwright-mcp-server-test.git
-   cd playwright-mcp-server-test
+   git clone https://github.com/YOUR_USERNAME/@mcp-testing/server-tester.git
+   cd @mcp-testing/server-tester
    ```
 3. Install dependencies:
    ```bash
@@ -135,7 +135,7 @@ Data, Api, Client
 ## Project Structure
 
 ```
-playwright-mcp-server-test/
+@mcp-testing/server-tester/
 ├── src/
 │   ├── config/       # MCPConfig types + validation
 │   ├── mcp/          # Client factory, fixtures
@@ -234,8 +234,8 @@ Include:
 
 - **Documentation**: Check [`docs/`](./docs) directory
 - **Examples**: See [`examples/`](./examples) directory
-- **Bugs**: [Open an issue](https://github.com/scalvert/playwright-mcp-server-test/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/scalvert/playwright-mcp-server-test/discussions)
+- **Bugs**: [Open an issue](https://github.com/scalvert/@mcp-testing/server-tester/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/scalvert/@mcp-testing/server-tester/discussions)
 
 ## Code of Conduct
 

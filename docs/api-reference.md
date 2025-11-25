@@ -1,6 +1,6 @@
 # API Reference
 
-Complete API documentation for `playwright-mcp-server-test`.
+Complete API documentation for `@mcp-testing/server-tester`.
 
 ## Table of Contents
 

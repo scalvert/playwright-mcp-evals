@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-`playwright-mcp-server-test` is a Playwright-based testing and evaluation framework for MCP (Model Context Protocol) servers. It provides:
+`@mcp-testing/server-tester` is a Playwright-based testing and evaluation framework for MCP (Model Context Protocol) servers. It provides:
 
 - **Playwright fixtures** for MCP client integration
 - **Data-driven eval harness** with JSON datasets
