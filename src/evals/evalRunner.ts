@@ -56,6 +56,18 @@ export type EvalExpectation = (
 ) => Promise<EvalExpectationResult>;
 
 /**
+ * Map of expectation names to expectation functions
+ */
+export type ExpectationMap = {
+  exact?: EvalExpectation;
+  schema?: EvalExpectation;
+  textContains?: EvalExpectation;
+  regex?: EvalExpectation;
+  snapshot?: EvalExpectation;
+  judge?: EvalExpectation;
+};
+
+/**
  * Result of a single eval case
  */
 export interface EvalCaseResult {
@@ -161,14 +173,7 @@ export interface EvalRunnerOptions {
   /**
    * Expectation functions to apply
    */
-  expectations: {
-    exact?: EvalExpectation;
-    schema?: EvalExpectation;
-    textContains?: EvalExpectation;
-    regex?: EvalExpectation;
-    snapshot?: EvalExpectation;
-    judge?: EvalExpectation;
-  };
+  expectations: ExpectationMap;
 
   /**
    * Optional judge client for LLM-as-a-judge evaluation
@@ -188,7 +193,188 @@ export interface EvalRunnerOptions {
 }
 
 /**
+ * Options for running a single eval case
+ */
+export interface EvalCaseOptions {
+  /**
+   * Dataset name for the result (defaults to 'single-case')
+   */
+  datasetName?: string;
+}
+
+// ============================================================================
+// Core Execution Logic (DRY - used by both runEvalCase and runEvalDataset)
+// ============================================================================
+
+/**
+ * Executes a tool call based on the eval case mode
+ */
+async function executeToolCall(
+  evalCase: EvalCase,
+  mcp: MCPFixtureApi
+): Promise<{ response: unknown; error?: string }> {
+  const mode = evalCase.mode || 'direct';
+
+  try {
+    if (mode === 'llm_host') {
+      // LLM host simulation mode
+      if (!evalCase.scenario) {
+        throw new Error(
+          `Eval case ${evalCase.id}: scenario is required for llm_host mode`
+        );
+      }
+
+      if (!evalCase.llmHostConfig) {
+        throw new Error(
+          `Eval case ${evalCase.id}: llmHostConfig is required for llm_host mode`
+        );
+      }
+
+      const simulationResult = await simulateLLMHost(
+        mcp,
+        evalCase.scenario,
+        evalCase.llmHostConfig
+      );
+
+      if (!simulationResult.success) {
+        throw new Error(
+          simulationResult.error || 'LLM host simulation failed'
+        );
+      }
+
+      return { response: simulationResult };
+    } else {
+      // Direct mode - call tool directly
+      if (!evalCase.toolName) {
+        throw new Error(
+          `Eval case ${evalCase.id}: toolName is required for direct mode`
+        );
+      }
+      if (!evalCase.args) {
+        throw new Error(
+          `Eval case ${evalCase.id}: args is required for direct mode`
+        );
+      }
+
+      const result = await mcp.callTool(evalCase.toolName, evalCase.args);
+      return { response: result.structuredContent ?? result.content };
+    }
+  } catch (err) {
+    return {
+      response: undefined,
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
+}
+
+/**
+ * Runs all expectations against a response
+ */
+async function runExpectations(
+  expectations: ExpectationMap,
+  context: EvalExpectationContext,
+  evalCase: EvalCase,
+  response: unknown
+): Promise<EvalCaseResult['expectations']> {
+  const results: EvalCaseResult['expectations'] = {};
+
+  type ExpectationKey = keyof EvalCaseResult['expectations'];
+  for (const [name, expectation] of Object.entries(expectations)) {
+    if (expectation) {
+      const key = name as ExpectationKey;
+      try {
+        results[key] = await expectation(context, evalCase, response);
+      } catch (err) {
+        results[key] = {
+          pass: false,
+          details: `${name} expectation threw error: ${String(err)}`,
+        };
+      }
+    }
+  }
+
+  return results;
+}
+
+/**
+ * Determines if a case passed based on error and expectation results
+ */
+function didCasePass(
+  error: string | undefined,
+  expectations: EvalCaseResult['expectations']
+): boolean {
+  return (
+    !error &&
+    Object.values(expectations).every(
+      (result) => result === undefined || result.pass
+    )
+  );
+}
+
+// ============================================================================
+// Public API
+// ============================================================================
+
+/**
+ * Runs a single eval case and returns the result
+ *
+ * @param evalCase - The eval case to run
+ * @param expectations - Map of expectation name to expectation function
+ * @param context - Context containing mcp, testInfo, expect
+ * @param options - Optional configuration (datasetName, etc.)
+ * @returns The result of running the eval case
+ *
+ * @example
+ * ```typescript
+ * const result = await runEvalCase(
+ *   evalCase,
+ *   {
+ *     textContains: createTextContainsExpectation(),
+ *     exact: createExactExpectation(),
+ *   },
+ *   { mcp, testInfo, expect }
+ * );
+ *
+ * expect(result.pass).toBe(true);
+ * ```
+ */
+export async function runEvalCase(
+  evalCase: EvalCase,
+  expectations: ExpectationMap,
+  context: EvalExpectationContext,
+  options: EvalCaseOptions = {}
+): Promise<EvalCaseResult> {
+  const startTime = Date.now();
+  const mode = evalCase.mode || 'direct';
+
+  // Execute tool call
+  const { response, error } = await executeToolCall(evalCase, context.mcp);
+
+  // Run expectations if no error
+  const expectationResults = error
+    ? {}
+    : await runExpectations(expectations, context, evalCase, response);
+
+  // Build result
+  return {
+    id: evalCase.id,
+    datasetName: options.datasetName ?? 'single-case',
+    toolName: evalCase.toolName || evalCase.scenario || 'llm_host',
+    mode,
+    source: 'eval',
+    pass: didCasePass(error, expectationResults),
+    response,
+    error,
+    expectations: expectationResults,
+    durationMs: Date.now() - startTime,
+  };
+}
+
+/**
  * Runs an eval dataset against an MCP server
+ *
+ * This function composes runEvalCase() for each case in the dataset,
+ * adding dataset-level features like stopOnFailure and callbacks.
  *
  * @param options - Eval runner options
  * @param context - Eval context (mcp fixture, optional judge client, optional testInfo)
@@ -228,8 +414,8 @@ export async function runEvalDataset(
     onCaseComplete,
   } = options;
 
-  const caseResults: Array<EvalCaseResult> = [];
   const startTime = Date.now();
+  const caseResults: EvalCaseResult[] = [];
 
   // Enrich context with judge client
   const enrichedContext: EvalExpectationContext = {
@@ -239,200 +425,24 @@ export async function runEvalDataset(
 
   // Run each case
   for (const evalCase of dataset.cases) {
-    const caseStartTime = Date.now();
-    let response: unknown;
-    let error: string | undefined;
-
-    // Determine eval mode
-    const mode = evalCase.mode || 'direct';
-
-    // Execute based on mode
-    try {
-      if (mode === 'llm_host') {
-        // LLM host simulation mode
-        if (!evalCase.scenario) {
-          throw new Error(
-            `Eval case ${evalCase.id}: scenario is required for llm_host mode`
-          );
-        }
-
-        if (!evalCase.llmHostConfig) {
-          throw new Error(
-            `Eval case ${evalCase.id}: llmHostConfig is required for llm_host mode`
-          );
-        }
-
-        const simulationResult = await simulateLLMHost(
-          context.mcp,
-          evalCase.scenario,
-          evalCase.llmHostConfig
-        );
-
-        if (!simulationResult.success) {
-          throw new Error(
-            simulationResult.error || 'LLM host simulation failed'
-          );
-        }
-
-        // Response contains the full simulation result
-        response = simulationResult;
-      } else {
-        // Direct mode - call tool directly
-        if (!evalCase.toolName) {
-          throw new Error(
-            `Eval case ${evalCase.id}: toolName is required for direct mode`
-          );
-        }
-        if (!evalCase.args) {
-          throw new Error(
-            `Eval case ${evalCase.id}: args is required for direct mode`
-          );
-        }
-
-        const result = await context.mcp.callTool(
-          evalCase.toolName,
-          evalCase.args
-        );
-        response = result.structuredContent ?? result.content;
-      }
-    } catch (err) {
-      error = err instanceof Error ? err.message : String(err);
-    }
-
-    // Run expectations
-    const expectationResults: EvalCaseResult['expectations'] = {};
-
-    if (!error) {
-      // Run exact expectation
-      if (expectations.exact) {
-        try {
-          expectationResults.exact = await expectations.exact(
-            enrichedContext,
-            evalCase,
-            response
-          );
-        } catch (err) {
-          expectationResults.exact = {
-            pass: false,
-            details: `Exact expectation threw error: ${String(err)}`,
-          };
-        }
-      }
-
-      // Run schema expectation
-      if (expectations.schema) {
-        try {
-          expectationResults.schema = await expectations.schema(
-            enrichedContext,
-            evalCase,
-            response
-          );
-        } catch (err) {
-          expectationResults.schema = {
-            pass: false,
-            details: `Schema expectation threw error: ${String(err)}`,
-          };
-        }
-      }
-
-      // Run textContains expectation
-      if (expectations.textContains) {
-        try {
-          expectationResults.textContains = await expectations.textContains(
-            enrichedContext,
-            evalCase,
-            response
-          );
-        } catch (err) {
-          expectationResults.textContains = {
-            pass: false,
-            details: `TextContains expectation threw error: ${String(err)}`,
-          };
-        }
-      }
-
-      // Run regex expectation
-      if (expectations.regex) {
-        try {
-          expectationResults.regex = await expectations.regex(
-            enrichedContext,
-            evalCase,
-            response
-          );
-        } catch (err) {
-          expectationResults.regex = {
-            pass: false,
-            details: `Regex expectation threw error: ${String(err)}`,
-          };
-        }
-      }
-
-      // Run snapshot expectation
-      if (expectations.snapshot) {
-        try {
-          expectationResults.snapshot = await expectations.snapshot(
-            enrichedContext,
-            evalCase,
-            response
-          );
-        } catch (err) {
-          expectationResults.snapshot = {
-            pass: false,
-            details: `Snapshot expectation threw error: ${String(err)}`,
-          };
-        }
-      }
-
-      // Run judge expectation
-      if (expectations.judge) {
-        try {
-          expectationResults.judge = await expectations.judge(
-            enrichedContext,
-            evalCase,
-            response
-          );
-        } catch (err) {
-          expectationResults.judge = {
-            pass: false,
-            details: `Judge expectation threw error: ${String(err)}`,
-          };
-        }
-      }
-    }
-
-    // Determine overall pass/fail
-    const pass =
-      !error &&
-      Object.values(expectationResults).every(
-        (result) => result === undefined || result.pass
-      );
-
-    const caseResult: EvalCaseResult = {
-      id: evalCase.id,
+    const result = await runEvalCase(evalCase, expectations, enrichedContext, {
       datasetName: dataset.name,
-      toolName: evalCase.toolName || evalCase.scenario || 'llm_host',
-      mode,
-      source: 'eval',
-      pass,
-      response,
-      error,
-      expectations: expectationResults,
-      durationMs: Date.now() - caseStartTime,
-    };
+    });
 
-    caseResults.push(caseResult);
+    caseResults.push(result);
 
     // Call onCaseComplete callback
     if (onCaseComplete) {
-      await onCaseComplete(caseResult);
+      await onCaseComplete(result);
     }
 
     // Stop on failure if requested
-    if (stopOnFailure && !pass) {
+    if (stopOnFailure && !result.pass) {
       break;
     }
   }
 
+  // Aggregate results
   const passed = caseResults.filter((r) => r.pass).length;
   const failed = caseResults.filter((r) => !r.pass).length;
 
@@ -453,138 +463,4 @@ export async function runEvalDataset(
   }
 
   return result;
-}
-
-/**
- * Runs a single eval case and returns the result
- *
- * @param evalCase - The eval case to run
- * @param expectations - Map of expectation name to expectation function
- * @param context - Context containing mcp, testInfo, expect
- * @returns The result of running the eval case
- *
- * @example
- * ```typescript
- * const result = await runEvalCase(
- *   evalCase,
- *   {
- *     textContains: createTextContainsExpectation(),
- *     exact: createExactExpectation(),
- *   },
- *   { mcp, testInfo, expect }
- * );
- *
- * expect(result.pass).toBe(true);
- * ```
- */
-export async function runEvalCase(
-  evalCase: EvalCase,
-  expectations: EvalRunnerOptions['expectations'],
-  context: EvalExpectationContext
-): Promise<EvalCaseResult> {
-  const caseStartTime = Date.now();
-  let response: unknown;
-  let error: string | undefined;
-
-  // Determine eval mode
-  const mode = evalCase.mode || 'direct';
-
-  // Execute based on mode
-  try {
-    if (mode === 'llm_host') {
-      // LLM host simulation mode
-      if (!evalCase.scenario) {
-        throw new Error(
-          `Eval case ${evalCase.id}: scenario is required for llm_host mode`
-        );
-      }
-
-      if (!evalCase.llmHostConfig) {
-        throw new Error(
-          `Eval case ${evalCase.id}: llmHostConfig is required for llm_host mode`
-        );
-      }
-
-      const simulationResult = await simulateLLMHost(
-        context.mcp,
-        evalCase.scenario,
-        evalCase.llmHostConfig
-      );
-
-      if (!simulationResult.success) {
-        throw new Error(
-          simulationResult.error || 'LLM host simulation failed'
-        );
-      }
-
-      // Response contains the full simulation result
-      response = simulationResult;
-    } else {
-      // Direct mode - call tool directly
-      if (!evalCase.toolName) {
-        throw new Error(
-          `Eval case ${evalCase.id}: toolName is required for direct mode`
-        );
-      }
-      if (!evalCase.args) {
-        throw new Error(
-          `Eval case ${evalCase.id}: args is required for direct mode`
-        );
-      }
-
-      const result = await context.mcp.callTool(
-        evalCase.toolName,
-        evalCase.args
-      );
-      response = result.structuredContent ?? result.content;
-    }
-  } catch (err) {
-    error = err instanceof Error ? err.message : String(err);
-  }
-
-  // Run expectations
-  const expectationResults: EvalCaseResult['expectations'] = {};
-
-  if (!error) {
-    type ExpectationKey = keyof EvalCaseResult['expectations'];
-    for (const [name, expectation] of Object.entries(expectations)) {
-      if (expectation) {
-        const key = name as ExpectationKey;
-        try {
-          expectationResults[key] = await expectation(
-            context,
-            evalCase,
-            response
-          );
-        } catch (err) {
-          expectationResults[key] = {
-            pass: false,
-            details: `${name} expectation threw error: ${String(err)}`,
-          };
-        }
-      }
-    }
-  }
-
-  // Determine overall pass/fail
-  const pass =
-    !error &&
-    Object.values(expectationResults).every(
-      (result) => result === undefined || result.pass
-    );
-
-  const caseResult: EvalCaseResult = {
-    id: evalCase.id,
-    datasetName: 'single-case',
-    toolName: evalCase.toolName || evalCase.scenario || 'llm_host',
-    mode,
-    source: 'eval',
-    pass,
-    response,
-    error,
-    expectations: expectationResults,
-    durationMs: Date.now() - caseStartTime,
-  };
-
-  return caseResult;
 }

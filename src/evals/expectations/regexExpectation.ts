@@ -1,10 +1,11 @@
-import type { EvalCase } from '../datasetTypes.js';
-import type {
-  EvalExpectation,
-  EvalExpectationResult,
-  EvalExpectationContext,
-} from '../evalRunner.js';
-import { extractTextFromResponse, findFailedPatterns } from './textUtils.js';
+/**
+ * Regex Expectation
+ *
+ * Validates that the response text matches all expected regex patterns.
+ */
+
+import { createTextExpectation, type ValidationResult } from './createExpectation.js';
+import { findFailedPatterns } from './textUtils.js';
 
 /**
  * Creates a regex pattern expectation
@@ -34,32 +35,18 @@ import { extractTextFromResponse, findFailedPatterns } from './textUtils.js';
  * };
  * ```
  */
-export function createRegexExpectation(): EvalExpectation {
-  return async (
-    _context: EvalExpectationContext,
-    evalCase: EvalCase,
-    response: unknown
-  ): Promise<EvalExpectationResult> => {
-    // Skip if no expected patterns are defined
-    if (evalCase.expectedRegex === undefined) {
-      return {
-        pass: true,
-        details: 'No expectedRegex defined, skipping',
-      };
-    }
+export const createRegexExpectation = createTextExpectation<string | string[]>({
+  name: 'regex',
 
-    // Extract text from response
-    const text = extractTextFromResponse(response);
+  getExpected: (evalCase) => evalCase.expectedRegex,
 
+  validate: (text, expected): ValidationResult => {
     // Normalize to array
-    const patterns = Array.isArray(evalCase.expectedRegex)
-      ? evalCase.expectedRegex
-      : [evalCase.expectedRegex];
+    const patterns = Array.isArray(expected) ? expected : [expected];
 
     // Find failed patterns
     const failed = findFailedPatterns(text, patterns);
 
-    // Build result
     if (failed.length === 0) {
       return {
         pass: true,
@@ -87,5 +74,5 @@ export function createRegexExpectation(): EvalExpectation {
       pass: false,
       details: `Failed to match ${failed.length} pattern(s):\n${failureDetails}\n\nResponse text:\n${text.slice(0, 500)}${text.length > 500 ? '...' : ''}`,
     };
-  };
-}
+  },
+});

@@ -2,94 +2,27 @@
  * Utilities for extracting and working with text from MCP responses
  */
 
+import { extractText } from '../../mcp/response.js';
+
 /**
  * Extracts text content from an MCP response
  *
  * Supports multiple response formats:
  * - Plain strings
  * - MCP CallToolResult with content array
+ * - NormalizedToolResponse from normalizeToolResponse()
  * - Objects with text field
  * - Structured content (JSON)
  *
  * @param response - The response to extract text from
  * @returns Extracted text content
+ *
+ * @remarks
+ * This function delegates to the centralized `extractText` function
+ * from `src/mcp/response.ts`. It is maintained for backwards compatibility.
  */
 export function extractTextFromResponse(response: unknown): string {
-  // Handle null/undefined
-  if (response == null) {
-    return '';
-  }
-
-  // Plain string response
-  if (typeof response === 'string') {
-    return response;
-  }
-
-  // Array response (direct content array)
-  if (Array.isArray(response)) {
-    const textParts = response
-      .filter((c: unknown) => {
-        return (
-          c != null &&
-          typeof c === 'object' &&
-          'type' in c &&
-          c.type === 'text' &&
-          'text' in c
-        );
-      })
-      .map((c: Record<string, unknown>) => c.text as string);
-
-    if (textParts.length > 0) {
-      return textParts.join('\n');
-    }
-    // If no text parts found, stringify the array
-    return JSON.stringify(response);
-  }
-
-  // Object responses
-  if (typeof response === 'object') {
-    const r = response as Record<string, unknown>;
-
-    // MCP CallToolResult format: { content: [{ type: 'text', text: '...' }] }
-    if (Array.isArray(r.content)) {
-      const textParts = r.content
-        .filter((c: unknown) => {
-          return (
-            c != null &&
-            typeof c === 'object' &&
-            'type' in c &&
-            c.type === 'text' &&
-            'text' in c
-          );
-        })
-        .map((c: Record<string, unknown>) => c.text as string);
-
-      if (textParts.length > 0) {
-        return textParts.join('\n');
-      }
-    }
-
-    // Check for structuredContent field (common MCP pattern)
-    if (r.structuredContent != null) {
-      // If structuredContent is a string, return it
-      if (typeof r.structuredContent === 'string') {
-        return r.structuredContent;
-      }
-      // Otherwise JSON stringify it
-      return JSON.stringify(r.structuredContent);
-    }
-
-    // Direct text field
-    if (r.text != null && typeof r.text === 'string') {
-      return r.text;
-    }
-
-    // Fallback: JSON stringify the object
-    return JSON.stringify(r);
-  }
-
-  // Fallback for primitives (numbers, booleans, etc.)
-  return String(response);
+  return extractText(response);
 }
 
 /**

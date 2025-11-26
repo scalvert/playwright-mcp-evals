@@ -1,7 +1,8 @@
 /**
  * LLM Host Simulation - Main entry point
  *
- * Factory function for creating LLM host simulators
+ * Provides the public API for simulating LLM hosts interacting
+ * with MCP servers through actual LLM providers.
  */
 
 import type { MCPFixtureApi } from '../../mcp/fixtures/mcpFixture.js';
@@ -10,8 +11,14 @@ import type {
   LLMHostSimulationResult,
   LLMProvider,
 } from './llmHostTypes.js';
-import { simulateOpenAIHost } from './openaiHostSimulation.js';
-import { simulateAnthropicHost } from './anthropicHostSimulation.js';
+import { registerAdapter, getAdapter, hasAdapter } from './adapter.js';
+import { runSimulation } from './orchestrator.js';
+import { createOpenAIAdapter } from './adapters/openai.js';
+import { createAnthropicAdapter } from './adapters/anthropic.js';
+
+// Register built-in adapters
+registerAdapter('openai', createOpenAIAdapter);
+registerAdapter('anthropic', createAnthropicAdapter);
 
 /**
  * Simulates an LLM host interacting with an MCP server
@@ -32,7 +39,7 @@ import { simulateAnthropicHost } from './anthropicHostSimulation.js';
  *   "Get the weather for London",
  *   {
  *     provider: 'openai',
- *     model: 'gpt-4'
+ *     model: 'gpt-4o'
  *   }
  * );
  *
@@ -48,40 +55,28 @@ export async function simulateLLMHost(
   scenario: string,
   config: LLMHostConfig
 ): Promise<LLMHostSimulationResult> {
-  const provider = config.provider;
+  const adapter = getAdapter(config.provider);
 
-  switch (provider) {
-    case 'openai':
-      return await simulateOpenAIHost(mcp, scenario, config);
-    case 'anthropic':
-      return await simulateAnthropicHost(mcp, scenario, config);
-    default:
-      throw new Error(
-        `Unsupported LLM provider: ${provider}. Supported providers: openai, anthropic`
-      );
-  }
+  return runSimulation(adapter, mcp, scenario, config, {
+    retry: {
+      maxAttempts: 3,
+      baseDelayMs: 1000,
+      maxDelayMs: 30000,
+    },
+  });
 }
 
 /**
- * Checks if the required SDK is installed for a given provider
+ * Checks if the required SDK is available for a given provider
+ *
+ * This performs a quick check without actually loading the SDK.
+ * The actual SDK loading happens in the adapter when simulation runs.
  *
  * @param provider - LLM provider to check
- * @returns true if SDK is available, false otherwise
+ * @returns true if an adapter is registered for the provider
  */
 export function isProviderAvailable(provider: LLMProvider): boolean {
-  try {
-    if (provider === 'openai') {
-      require.resolve('@openai/agents');
-      require.resolve('openai');
-      return true;
-    } else if (provider === 'anthropic') {
-      require.resolve('@anthropic-ai/sdk');
-      return true;
-    }
-    return false;
-  } catch {
-    return false;
-  }
+  return hasAdapter(provider);
 }
 
 /**
@@ -91,10 +86,18 @@ export function isProviderAvailable(provider: LLMProvider): boolean {
  * @returns Error message with installation instructions
  */
 export function getMissingDependencyMessage(provider: LLMProvider): string {
-  if (provider === 'openai') {
-    return `OpenAI SDKs are not installed. Install them with: npm install openai @openai/agents`;
-  } else if (provider === 'anthropic') {
-    return `Anthropic SDK is not installed. Install it with: npm install @anthropic-ai/sdk`;
+  switch (provider) {
+    case 'openai':
+      return 'OpenAI SDK is not installed. Install it with: npm install openai';
+    case 'anthropic':
+      return 'Anthropic SDK is not installed. Install it with: npm install @anthropic-ai/sdk';
+    default:
+      return `Unknown provider: ${provider}`;
   }
-  return `Unknown provider: ${provider}`;
 }
+
+// Re-export adapter utilities for advanced usage
+export { registerAdapter, getAdapter, hasAdapter } from './adapter.js';
+export { runSimulation } from './orchestrator.js';
+export { withRetry, isRetryableError, type RetryOptions } from './retry.js';
+export type { LLMAdapter, LLMChatResult } from './adapter.js';

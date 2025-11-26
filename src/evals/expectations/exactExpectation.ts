@@ -1,9 +1,10 @@
-import type { EvalCase } from '../datasetTypes.js';
-import type {
-  EvalExpectation,
-  EvalExpectationResult,
-  EvalExpectationContext,
-} from '../evalRunner.js';
+/**
+ * Exact Match Expectation
+ *
+ * Validates that the tool response exactly matches the expected value.
+ */
+
+import { createRawExpectation, type ValidationResult } from './createExpectation.js';
 
 /**
  * Creates an exact match expectation
@@ -13,23 +14,12 @@ import type {
  *
  * @returns Expectation function
  */
-export function createExactExpectation(): EvalExpectation {
-  return async (
-    _context: EvalExpectationContext,
-    evalCase: EvalCase,
-    response: unknown
-  ): Promise<EvalExpectationResult> => {
-    // Skip if no expected value is defined
-    if (evalCase.expectedExact === undefined) {
-      return {
-        pass: true,
-        details: 'No expectedExact defined, skipping',
-      };
-    }
+export const createExactExpectation = createRawExpectation<unknown>({
+  name: 'exact',
 
-    const expected = evalCase.expectedExact;
+  getExpected: (evalCase) => evalCase.expectedExact,
 
-    // Deep equality check
+  validate: (response, expected): ValidationResult => {
     const isEqual = deepEqual(response, expected);
 
     return {
@@ -38,8 +28,8 @@ export function createExactExpectation(): EvalExpectation {
         ? 'Response matches expected value'
         : `Expected: ${JSON.stringify(expected, null, 2)}\nReceived: ${JSON.stringify(response, null, 2)}`,
     };
-  };
-}
+  },
+});
 
 /**
  * Deep equality comparison

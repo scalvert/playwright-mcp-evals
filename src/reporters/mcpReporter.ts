@@ -47,6 +47,7 @@ export default class MCPReporter implements Reporter {
       autoOpen: options.autoOpen ?? true,
       historyLimit: options.historyLimit ?? 10,
       quiet: options.quiet ?? false,
+      includeAutoTracking: options.includeAutoTracking ?? true,
     };
   }
 
@@ -98,8 +99,10 @@ export default class MCPReporter implements Reporter {
 
     // Strategy 2: Extract MCP tool calls from auto-tracking attachments
     // These are created by createMCPFixture()
-    // Skip if this test already has eval dataset results to avoid duplicates
-    if (hasEvalDataset) {
+    // Skip if:
+    // - This test already has eval dataset results (to avoid duplicates)
+    // - Auto-tracking is disabled in config
+    if (hasEvalDataset || !this.config.includeAutoTracking) {
       return;
     }
 

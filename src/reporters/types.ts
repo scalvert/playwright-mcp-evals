@@ -27,6 +27,15 @@ export interface MCPEvalReporterConfig {
    * @default false
    */
   quiet?: boolean;
+
+  /**
+   * Include auto-tracked MCP tool calls from tests without explicit eval results.
+   * When true, any test using the MCP fixture will have its tool calls
+   * included in the report, even without using runEvalCase/runEvalDataset.
+   * When false, only tests with explicit eval results are included.
+   * @default true
+   */
+  includeAutoTracking?: boolean;
 }
 
 /**
