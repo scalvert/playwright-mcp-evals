@@ -34,17 +34,6 @@
       "expectedTextContains": ["guide.md", "api.md"]
     },
     {
-      "id": "should get directory tree with markdown files",
-      "description": "Get directory tree showing all markdown files",
-      "mode": "direct",
-      "toolName": "directory_tree",
-      "args": {
-        "path": "."
-      },
-      "expectedTextContains": [".md", "guide.md", "api.md"],
-      "expectedRegex": ["guide\\.md", "api\\.md"]
-    },
-    {
       "id": "should read nested file in subdirectory",
       "description": "Read a file in a subdirectory",
       "mode": "direct",
@@ -73,7 +62,7 @@
       "scenario": "What files are in the docs directory?",
       "llmHostConfig": {
         "provider": "openai",
-        "model": "gpt-4",
+        "model": "gpt-4o",
         "temperature": 0.0,
         "maxTokens": 1000
       },
@@ -125,7 +114,7 @@
       "scenario": "Find all markdown files in this project.",
       "llmHostConfig": {
         "provider": "openai",
-        "model": "gpt-4",
+        "model": "gpt-4o",
         "temperature": 0.0
       },
       "expectedTextContains": [".md"],
@@ -175,7 +164,7 @@
       "scenario": "Show me all files and directories in this project.",
       "llmHostConfig": {
         "provider": "openai",
-        "model": "gpt-4",
+        "model": "gpt-4o",
         "temperature": 0.0
       },
       "metadata": {
@@ -195,12 +184,9 @@
       "args": {
         "path": "readme.txt"
       },
-      "expectedExact": [
-        {
-          "type": "text",
-          "text": "Hello World"
-        }
-      ]
+      "expectedExact": {
+        "content": "Hello World"
+      }
     },
     {
       "id": "should match readme snapshot",
@@ -221,16 +207,6 @@
         "path": "config.json"
       },
       "expectedSnapshot": "config-structure.json"
-    },
-    {
-      "id": "should match directory tree snapshot",
-      "description": "Snapshot test for directory tree structure",
-      "mode": "direct",
-      "toolName": "directory_tree",
-      "args": {
-        "path": "."
-      },
-      "expectedSnapshot": "directory-tree.json"
     }
   ],
   "metadata": {

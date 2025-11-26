@@ -1,5 +1,12 @@
 import { defineConfig } from '@playwright/test';
 
+// Suppress dotenv logging before importing
+process.env.DOTENV_CONFIG_QUIET = 'true';
+import * as dotenv from 'dotenv';
+
+// Load environment variables from .env file
+dotenv.config();
+
 /**
  * Playwright configuration for Filesystem MCP Server example
  *
@@ -27,7 +34,8 @@ export default defineConfig({
     ['@mcp-testing/server-tester/reporters/mcpReporter', {
       outputDir: '.mcp-test-results',
       autoOpen: !process.env.CI,
-      historyLimit: 10
+      historyLimit: 10,
+      quiet: true
     }]
   ],
 

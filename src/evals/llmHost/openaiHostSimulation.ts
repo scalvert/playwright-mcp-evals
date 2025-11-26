@@ -12,31 +12,8 @@ import type {
   LLMToolCall,
 } from './llmHostTypes.js';
 
-/**
- * Checks if @openai/agents is available
- */
-function checkOpenAIAgentsAvailable(): void {
-  try {
-    require.resolve('@openai/agents');
-  } catch {
-    throw new Error(
-      'OpenAI Agents SDK is not installed. Install it with: npm install @openai/agents'
-    );
-  }
-}
-
-/**
- * Checks if openai is available
- */
-function checkOpenAIAvailable(): void {
-  try {
-    require.resolve('openai');
-  } catch {
-    throw new Error(
-      'OpenAI SDK is not installed. Install it with: npm install openai'
-    );
-  }
-}
+// Note: We don't pre-check for SDK availability anymore
+// Instead, we let the dynamic import fail with a clear error message
 
 /**
  * Simulates an LLM host using OpenAI Agents SDK with MCP support
@@ -51,13 +28,27 @@ export async function simulateOpenAIHost(
   scenario: string,
   config: LLMHostConfig
 ): Promise<LLMHostSimulationResult> {
-  checkOpenAIAgentsAvailable();
-  checkOpenAIAvailable();
-
   try {
     // Dynamic imports for optional dependencies
-    const { Agent } = await import('@openai/agents');
-    const { OpenAI } = await import('openai');
+    let Agent, OpenAI;
+
+    try {
+      const agentsModule = await import('@openai/agents');
+      Agent = agentsModule.Agent;
+    } catch (error) {
+      throw new Error(
+        'OpenAI Agents SDK is not installed. Install it with: npm install @openai/agents'
+      );
+    }
+
+    try {
+      const openaiModule = await import('openai');
+      OpenAI = openaiModule.OpenAI;
+    } catch (error) {
+      throw new Error(
+        'OpenAI SDK is not installed. Install it with: npm install openai'
+      );
+    }
 
     // Get API key from environment
     const apiKeyEnvVar = config.apiKeyEnvVar || 'OPENAI_API_KEY';
@@ -101,13 +92,12 @@ export async function simulateOpenAIHost(
     const toolCalls: LLMToolCall[] = [];
 
     // Create a simple agentic loop
-    const model = config.model || 'gpt-4';
+    const model = config.model || 'gpt-4o';
     const maxIterations = config.maxToolCalls || 10;
 
-    let conversationHistory: Array<{
-      role: 'user' | 'assistant' | 'tool';
-      content: string;
-    }> = [
+    // Conversation history in OpenAI's exact format
+    // Using any[] to allow the full flexibility of OpenAI message types
+    const conversationHistory: any[] = [
       {
         role: 'user',
         content: scenario,
@@ -118,14 +108,9 @@ export async function simulateOpenAIHost(
 
     for (let iteration = 0; iteration < maxIterations; iteration++) {
       // Call OpenAI with tools
-      const messages = conversationHistory.map((msg) => ({
-        role: msg.role,
-        content: msg.content,
-      }));
-
       const response = await openai.chat.completions.create({
         model,
-        messages: messages as any,
+        messages: conversationHistory,
         tools: openaiTools,
         temperature: config.temperature ?? 0.0,
         max_tokens: config.maxTokens,
@@ -139,10 +124,12 @@ export async function simulateOpenAIHost(
 
       // Check if the assistant wants to call tools
       if (message.tool_calls && message.tool_calls.length > 0) {
-        // Add assistant message to history
+        // Add assistant message WITH tool_calls to history
+        // This is required by OpenAI's API
         conversationHistory.push({
           role: 'assistant',
-          content: message.content || '',
+          content: message.content || null,
+          tool_calls: message.tool_calls,
         });
 
         // Execute each tool call through MCP
@@ -162,7 +149,15 @@ export async function simulateOpenAIHost(
 
           // Extract text from MCP result
           let resultText = '';
-          if (result.content && Array.isArray(result.content)) {
+          if (result.structuredContent) {
+            // New format: { content: "text" }
+            if (typeof result.structuredContent === 'object' && 'content' in result.structuredContent) {
+              resultText = String(result.structuredContent.content);
+            } else {
+              resultText = JSON.stringify(result.structuredContent);
+            }
+          } else if (result.content && Array.isArray(result.content)) {
+            // Old format: [{ type: "text", text: "..." }]
             resultText = result.content
               .map((item: any) =>
                 item.type === 'text' ? item.text : JSON.stringify(item)
@@ -172,9 +167,11 @@ export async function simulateOpenAIHost(
             resultText = JSON.stringify(result);
           }
 
-          // Add tool result to conversation
+          // Add tool result to conversation with tool_call_id
+          // This is REQUIRED by OpenAI's API to match the tool call
           conversationHistory.push({
             role: 'tool',
+            tool_call_id: toolCall.id,
             content: resultText,
           });
         }

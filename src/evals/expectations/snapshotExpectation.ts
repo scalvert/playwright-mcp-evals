@@ -68,11 +68,20 @@ export function createSnapshotExpectation(): EvalExpectation {
 
     try {
       // Normalize the response for snapshot comparison
-      // Handle MCP response format (array of content objects)
+      // Handle MCP response format (array of content objects or structured content)
       let normalizedResponse: unknown = response;
 
+      // Handle structuredContent format: { content: "text" }
+      if (
+        typeof response === 'object' &&
+        response !== null &&
+        'content' in response &&
+        typeof (response as any).content === 'string'
+      ) {
+        normalizedResponse = (response as { content: string }).content;
+      }
       // If response is an array with text content, extract the text
-      if (Array.isArray(response) && response.length > 0) {
+      else if (Array.isArray(response) && response.length > 0) {
         // MCP format: [{ type: "text", text: "content" }]
         const textContent = response
           .filter((item: any) => item?.type === 'text')

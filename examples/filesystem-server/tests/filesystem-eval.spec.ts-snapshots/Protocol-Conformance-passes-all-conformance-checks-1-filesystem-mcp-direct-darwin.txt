@@ -1,0 +1,22 @@
+[
+  {
+    "name": "server_info_present",
+    "pass": true,
+    "message": "Server info: secure-filesystem-server v0.2.0"
+  },
+  {
+    "name": "list_tools_succeeds",
+    "pass": true,
+    "message": "listTools returned 14 tools"
+  },
+  {
+    "name": "required_tools_present",
+    "pass": true,
+    "message": "All 3 required tools are present"
+  },
+  {
+    "name": "invalid_tool_returns_error",
+    "pass": true,
+    "message": "Nonexistent tool correctly returned an error"
+  }
+]

@@ -75,6 +75,12 @@ export interface MCPConfig {
    * Enable debug logging
    */
   debugLogging?: boolean;
+
+  /**
+   * Suppress stderr output from the server process (stdio only)
+   * When true, server stderr is ignored instead of inherited
+   */
+  quiet?: boolean;
 }
 
 /**
@@ -101,6 +107,7 @@ const StdioConfigSchema = z.object({
   connectTimeoutMs: z.number().positive().optional(),
   requestTimeoutMs: z.number().positive().optional(),
   debugLogging: z.boolean().optional(),
+  quiet: z.boolean().optional(),
 });
 
 /**

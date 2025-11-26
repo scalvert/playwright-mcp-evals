@@ -13,19 +13,6 @@ import type {
 } from './llmHostTypes.js';
 
 /**
- * Checks if @anthropic-ai/sdk is available
- */
-function checkAnthropicAvailable(): void {
-  try {
-    require.resolve('@anthropic-ai/sdk');
-  } catch {
-    throw new Error(
-      'Anthropic SDK is not installed. Install it with: npm install @anthropic-ai/sdk'
-    );
-  }
-}
-
-/**
  * Simulates an LLM host using Anthropic SDK with MCP integration
  *
  * @param mcp - MCP fixture API (contains the client we're testing)
@@ -38,11 +25,16 @@ export async function simulateAnthropicHost(
   scenario: string,
   config: LLMHostConfig
 ): Promise<LLMHostSimulationResult> {
-  checkAnthropicAvailable();
-
   try {
     // Dynamic import for optional dependency
-    const Anthropic = (await import('@anthropic-ai/sdk')).default;
+    let Anthropic;
+    try {
+      Anthropic = (await import('@anthropic-ai/sdk')).default;
+    } catch (error) {
+      throw new Error(
+        'Anthropic SDK is not installed. Install it with: npm install @anthropic-ai/sdk'
+      );
+    }
 
     // Get API key from environment
     const apiKeyEnvVar = config.apiKeyEnvVar || 'ANTHROPIC_API_KEY';

@@ -61,7 +61,7 @@ export type {
   EvalRunnerResult,
   EvalRunnerOptions,
 } from './evals/evalRunner.js';
-export { runEvalDataset } from './evals/evalRunner.js';
+export { runEvalDataset, runEvalCase } from './evals/evalRunner.js';
 
 // Expectations
 export { createExactExpectation } from './evals/expectations/exactExpectation.js';

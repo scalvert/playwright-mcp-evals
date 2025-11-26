@@ -21,6 +21,12 @@ export interface MCPEvalReporterConfig {
    * @default 10
    */
   historyLimit?: number;
+
+  /**
+   * Suppress console output (report still generated)
+   * @default false
+   */
+  quiet?: boolean;
 }
 
 /**

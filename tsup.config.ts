@@ -13,6 +13,7 @@ export default defineConfig([
     minify: false,
     outDir: 'dist',
     tsconfig: './tsconfig.build.json',
+    shims: true,  // Enable shims for require in ESM
   },
   // CLI build
   {

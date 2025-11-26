@@ -46,7 +46,20 @@ export default class MCPReporter implements Reporter {
       outputDir: options.outputDir ?? '.mcp-test-results',
       autoOpen: options.autoOpen ?? true,
       historyLimit: options.historyLimit ?? 10,
+      quiet: options.quiet ?? false,
     };
+  }
+
+  private log(message: string): void {
+    if (!this.config.quiet) {
+      console.log(message);
+    }
+  }
+
+  private logError(message: string, error?: unknown): void {
+    if (!this.config.quiet) {
+      console.error(message, error ?? '');
+    }
   }
 
   async onBegin(_config: FullConfig, _suite: Suite): Promise<void> {
@@ -76,7 +89,7 @@ export default class MCPReporter implements Reporter {
         this.allResults.push(...evalResults.caseResults);
         hasEvalDataset = true;
       } catch (error) {
-        console.error(
+        this.logError(
           `[MCP Reporter] Failed to parse eval results from test "${test.title}":`,
           error
         );
@@ -126,7 +139,7 @@ export default class MCPReporter implements Reporter {
 
         this.allResults.push(syntheticResult);
       } catch (error) {
-        console.error(
+        this.logError(
           `[MCP Reporter] Failed to parse MCP call attachment "${attachment.name}":`,
           error
         );
@@ -140,7 +153,7 @@ export default class MCPReporter implements Reporter {
 
     // Skip if no eval results collected
     if (this.allResults.length === 0) {
-      console.log('[MCP Reporter] No MCP eval results found in test run');
+      this.log('[MCP Reporter] No MCP eval results found in test run');
       return;
     }
 
@@ -171,8 +184,8 @@ export default class MCPReporter implements Reporter {
     await this.generateReport(runData, historical, reportDir);
 
     const reportPath = join(reportDir, 'index.html');
-    console.log(`\n[MCP Reporter] Report generated: ${reportPath}`);
-    console.log(
+    this.log(`\n[MCP Reporter] Report generated: ${reportPath}`);
+    this.log(
       `[MCP Reporter] Results: ${runData.metrics.passed}/${runData.metrics.total} passed (${(runData.metrics.passRate * 100).toFixed(1)}%)`
     );
 
@@ -294,7 +307,7 @@ export default class MCPReporter implements Reporter {
             durationMs: runData.durationMs,
           });
         } catch (error) {
-          console.error(`[MCP Reporter] Failed to load ${file}:`, error);
+          this.logError(`[MCP Reporter] Failed to load ${file}:`, error);
         }
       }
 
@@ -303,7 +316,7 @@ export default class MCPReporter implements Reporter {
           new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
       );
     } catch (error) {
-      console.error('[MCP Reporter] Failed to load historical data:', error);
+      this.logError('[MCP Reporter] Failed to load historical data:', error);
       return [];
     }
   }
@@ -330,7 +343,7 @@ export default class MCPReporter implements Reporter {
         await unlink(join(this.config.outputDir, file));
       }
     } catch (error) {
-      console.error('[MCP Reporter] Failed to cleanup old runs:', error);
+      this.logError('[MCP Reporter] Failed to cleanup old runs:', error);
     }
   }
 
@@ -341,10 +354,10 @@ export default class MCPReporter implements Reporter {
       const absolutePath = resolve(reportPath);
 
       await open(absolutePath);
-      console.log('[MCP Reporter] Opened report in browser');
+      this.log('[MCP Reporter] Opened report in browser');
     } catch (error) {
-      console.error('[MCP Reporter] Failed to open report:', error);
-      console.log(`[MCP Reporter] Open manually: file://${resolve(reportPath)}`);
+      this.logError('[MCP Reporter] Failed to open report:', error);
+      this.log(`[MCP Reporter] Open manually: file://${resolve(reportPath)}`);
     }
   }
 }

@@ -58,6 +58,8 @@ export async function createMCPClientForConfig(
       command: validatedConfig.command,
       args: validatedConfig.args ?? [],
       ...(validatedConfig.cwd && { cwd: validatedConfig.cwd }),
+      // Suppress server stderr when quiet mode is enabled
+      ...(validatedConfig.quiet && { stderr: 'ignore' as const }),
     });
 
     if (validatedConfig.debugLogging) {

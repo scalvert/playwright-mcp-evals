@@ -1,46 +1,10 @@
-[
+MCP error -32602: Output validation error: Invalid structured content for tool directory_tree: [
   {
-    "name": "config.json",
-    "type": "file"
-  },
-  {
-    "name": "data",
-    "type": "directory",
-    "children": [
-      {
-        "name": "settings.json",
-        "type": "file"
-      },
-      {
-        "name": "users.csv",
-        "type": "file"
-      }
-    ]
-  },
-  {
-    "name": "docs",
-    "type": "directory",
-    "children": [
-      {
-        "name": "api.md",
-        "type": "file"
-      },
-      {
-        "name": "guide.md",
-        "type": "file"
-      }
-    ]
-  },
-  {
-    "name": "index.js",
-    "type": "file"
-  },
-  {
-    "name": "package.json",
-    "type": "file"
-  },
-  {
-    "name": "readme.txt",
-    "type": "file"
+    "expected": "string",
+    "code": "invalid_type",
+    "path": [
+      "content"
+    ],
+    "message": "Invalid input: expected string, received array"
   }
 ]
