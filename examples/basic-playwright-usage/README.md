@@ -1,59 +1,73 @@
 # Basic Playwright Usage Example
 
-This example demonstrates how to use `@mcp-testing/server-tester` in Playwright tests.
+The simplest possible example of testing an MCP server with `@mcp-testing/server-tester`.
 
-## Setup
+## What This Example Demonstrates
 
-1. Install dependencies:
+- ✅ Creating MCP fixtures for Playwright
+- ✅ Connecting to an MCP server (stdio transport)
+- ✅ Calling tools and validating responses
+- ✅ Running protocol conformance checks
+- ✅ Error handling
+
+## Quick Start
 
 ```bash
 npm install
+npm test
 ```
 
-2. Configure your MCP server in `playwright.config.ts`
+## Project Structure
 
-3. Run tests:
-
-```bash
-npx playwright test
+```
+basic-playwright-usage/
+├── tests/
+│   └── basic.spec.ts      # 4 simple tests (~60 lines)
+├── package.json
+├── playwright.config.ts
+└── README.md
 ```
 
-## Example Test
+## The Code
+
+The entire test file is ~60 lines. Here's the core pattern:
+
+### 1. Create Fixtures
 
 ```typescript
-import { test, expect } from '@mcp-testing/server-tester/fixtures/mcp';
+const test = base.extend<{ mcp: MCPFixtureApi }>({
+  mcp: async ({}, use, testInfo) => {
+    const config: MCPConfig = {
+      transport: 'stdio',
+      command: 'npx',
+      args: ['-y', '@modelcontextprotocol/server-filesystem', '/tmp'],
+    };
 
-test('basic MCP test', async ({ mcp }) => {
-  // List available tools
-  const tools = await mcp.listTools();
-  expect(tools.length).toBeGreaterThan(0);
-
-  // Call a tool
-  const result = await mcp.callTool('your_tool_name', {
-    arg1: 'value1',
-  });
-
-  expect(result).toBeTruthy();
+    const client = await createMCPClientForConfig(config);
+    const mcp = createMCPFixture(client, testInfo);
+    await use(mcp);
+    await closeMCPClient(client);
+  },
 });
 ```
 
-## Configuration
-
-In `playwright.config.ts`:
+### 2. Write Tests
 
 ```typescript
-export default defineConfig({
-  projects: [
-    {
-      name: 'my-mcp-server',
-      use: {
-        mcpConfig: {
-          transport: 'stdio',
-          command: 'node',
-          args: ['path/to/server.js'],
-        },
-      },
-    },
-  ],
+test('calls a tool', async ({ mcp }) => {
+  const result = await mcp.callTool('read_file', { path: 'hello.txt' });
+
+  expect(result.isError).not.toBe(true);
+
+  const text = extractTextFromResponse(result);
+  expect(text).toBe('Hello, MCP!');
 });
 ```
+
+## Next Steps
+
+Once you understand the basics, check out:
+
+- **[filesystem-server](../filesystem-server/)** - Comprehensive example with eval datasets
+- **[sqlite-server](../sqlite-server/)** - Database testing with custom fixtures
+- **[glean-server](../glean-server/)** - HTTP transport and production server testing

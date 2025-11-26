@@ -202,13 +202,6 @@ export interface EvalCaseOptions {
   datasetName?: string;
 }
 
-// ============================================================================
-// Core Execution Logic (DRY - used by both runEvalCase and runEvalDataset)
-// ============================================================================
-
-/**
- * Executes a tool call based on the eval case mode
- */
 async function executeToolCall(
   evalCase: EvalCase,
   mcp: MCPFixtureApi
@@ -310,10 +303,6 @@ function didCasePass(
     )
   );
 }
-
-// ============================================================================
-// Public API
-// ============================================================================
 
 /**
  * Runs a single eval case and returns the result

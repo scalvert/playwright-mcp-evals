@@ -1,0 +1,16 @@
+{
+  "name": "basic-playwright-usage-example",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Minimal example of testing an MCP server with @mcp-testing/server-tester",
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:debug": "playwright test --debug"
+  },
+  "dependencies": {
+    "@mcp-testing/server-tester": "file:../..",
+    "@modelcontextprotocol/server-filesystem": "^2025.1.14",
+    "@playwright/test": "^1.49.1"
+  }
+}

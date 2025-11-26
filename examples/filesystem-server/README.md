@@ -1,130 +1,116 @@
 # Filesystem MCP Server Example
 
-This example demonstrates testing the official [Filesystem MCP Server](https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem) from Anthropic using `@mcp-testing/server-tester`.
+Comprehensive testing example for the official [Filesystem MCP Server](https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem) using `@mcp-testing/server-tester`.
 
 ## What This Example Demonstrates
 
-- ✅ Testing a real, official MCP server (not a mock)
-- ✅ Using `fixturify-project` for isolated test fixtures
-- ✅ Both **direct mode** (specific tool calls) and **LLM host mode** (natural language)
-- ✅ File system operations: read, write, list, search
-- ✅ Schema validation with Zod
-- ✅ Text and regex pattern matching
-- ✅ Automatic test fixture cleanup
+This is the **canonical example** showing all testing patterns organized into three layers:
 
-## Prerequisites
+### Unit/Integration Testing (no LLM required)
+1. **Protocol Conformance** - Validate MCP protocol compliance
+2. **Direct API Testing** - Call tools directly with assertions
+3. **Inline Eval Cases** - Define eval cases in code with expectations
 
-- Node.js 18+
-- npm or pnpm
+### Data-Driven Testing (JSON datasets)
+4. **Eval Dataset (Batch)** - Run all cases from JSON together
+5. **Individual Eval Cases** - Generate one test per JSON case
 
-## Installation
+### End-to-End / Functional Testing (requires LLM API keys)
+6. **LLM Host Simulation** - Test real MCP usage with LLM tool discovery
+7. **LLM Host from JSON** - Data-driven LLM host tests
+
+## Quick Start
 
 ```bash
 npm install
-```
-
-This will install:
-- `@playwright/test` - Test framework
-- `@mcp-testing/server-tester` - Evaluation framework
-- `@modelcontextprotocol/server-filesystem` - Official MCP server
-- `fixturify-project` - Test fixture management
-- `zod` - Schema validation
-
-## Running Tests
-
-### Run all tests (direct mode only)
-```bash
 npm test
 ```
 
-### Run with LLM host mode tests (requires API keys)
-```bash
-# OpenAI
-OPENAI_API_KEY=your-key-here npm test
+## The Testing Pyramid
 
-# Anthropic
-ANTHROPIC_API_KEY=your-key-here npm test
-
-# Both
-OPENAI_API_KEY=key1 ANTHROPIC_API_KEY=key2 npm test
+```
+                    ┌─────────────────────┐
+                    │   LLM Host E2E      │  ← Real LLM discovers & calls tools
+                    │   (functional)      │     Requires API keys
+                    ├─────────────────────┤
+                    │   Data-Driven       │  ← JSON datasets + expectations
+                    │   (eval datasets)   │     No LLM required
+                    ├─────────────────────┤
+                    │   Direct API        │  ← Tool calls + assertions
+                    │   (unit/integration)│     No LLM required
+                    └─────────────────────┘
 ```
 
-### Run in UI mode
-```bash
-npm run test:ui
-```
+## Test Patterns
 
-### Debug mode
-```bash
-npm run test:debug
-```
+### 1. Direct API Testing
 
-## How It Works
-
-### Test Fixture Setup
-
-The test uses `fixturify-project` to create a temporary directory with test files:
+Call MCP tools directly - validates tool implementation:
 
 ```typescript
-import { Project } from 'fixturify-project';
+test('reads a file', async ({ mcp }) => {
+  const result = await mcp.callTool('read_file', { path: 'readme.txt' });
 
-const project = new Project('fs-test', '1.0.0', {
-  files: {
-    'readme.txt': 'Hello World',
-    'config.json': JSON.stringify({ version: '1.0.0' }),
-    'docs': {
-      'guide.md': '# User Guide\n\nContent',
-      'api.md': '# API Reference'
-    }
-  }
-});
+  expect(result.isError).not.toBe(true);
 
-// Write files to disk
-await project.write();
-
-// project.baseDir contains the absolute path to the temp directory
-```
-
-### MCP Server Configuration
-
-The Filesystem MCP server is configured to operate on the temporary directory:
-
-```typescript
-test.use({
-  mcpConfig: ({ projectPath }) => ({
-    transport: 'stdio',
-    command: 'npx',
-    args: ['-y', '@modelcontextprotocol/server-filesystem', projectPath]
-  })
+  const text = extractTextFromResponse(result);
+  expect(text).toBe('Hello World');
 });
 ```
 
-### Automatic Cleanup
+### 2. Inline Eval Cases (Code-Defined)
 
-Fixtures handle cleanup automatically - no temp files left behind:
+Define eval cases in code with expectations - no JSON needed:
 
 ```typescript
-test.extend({
-  fileProject: async ({}, use) => {
-    const project = new Project('fs-test', '1.0.0', {
-      files: { /* your files */ }
-    });
-    await project.write();
-    await use(project);
-    project.dispose(); // Automatic cleanup after test
-  }
+test('validates config with inline case', async ({ mcp }) => {
+  const result = await runEvalCase(
+    {
+      id: 'inline-config-check',
+      toolName: 'read_file',
+      args: { path: 'config.json' },
+      expectedTextContains: ['version', '1.0.0'],
+    },
+    { textContains: createTextContainsExpectation() },
+    { mcp }
+  );
+
+  expect(result.pass).toBe(true);
 });
 ```
 
-## Test Cases
+### 3. LLM Host Simulation (E2E Functional)
 
-### Direct Mode Tests
+Test how MCP servers are **really used** - an LLM discovers tools and decides how to use them:
 
-Direct API calls to specific tools:
+```typescript
+test('LLM discovers and lists directory contents', async ({ mcp }) => {
+  // Simulate real MCP usage: natural language → LLM → tool calls
+  const result = await simulateLLMHost(
+    mcp,
+    'What files are in the docs directory?',
+    { provider: 'openai', model: 'gpt-4o', temperature: 0 }
+  );
+
+  expect(result.success).toBe(true);
+  expect(result.toolCalls.length).toBeGreaterThan(0);
+
+  // Validate the LLM chose the right tool
+  const listDirCall = result.toolCalls.find(c => c.name === 'list_directory');
+  expect(listDirCall).toBeDefined();
+
+  // Validate the response
+  expect(result.response).toContain('guide');
+});
+```
+
+### 4. Data-Driven Tests (JSON)
+
+Define test cases in JSON for maintainability:
 
 ```json
 {
-  "id": "read-readme",
+  "id": "should read readme.txt file",
   "mode": "direct",
   "toolName": "read_file",
   "args": { "path": "readme.txt" },
@@ -132,93 +118,45 @@ Direct API calls to specific tools:
 }
 ```
 
-### LLM Host Mode Tests
+```typescript
+const dataset = await loadEvalDataset('./eval-dataset.json');
 
-Natural language scenarios where the LLM chooses which tool to use:
+const result = await runEvalDataset(
+  { dataset, expectations: { textContains: createTextContainsExpectation() } },
+  { mcp, testInfo, expect }
+);
 
-```json
-{
-  "id": "llm-list-docs",
-  "mode": "llm_host",
-  "scenario": "What files are in the docs directory?",
-  "llmHostConfig": {
-    "provider": "openai",
-    "model": "gpt-4"
-  },
-  "metadata": {
-    "expectedToolCalls": [
-      {
-        "name": "list_directory",
-        "arguments": { "path": "docs" }
-      }
-    ]
-  }
-}
+expect(result.passed).toBe(result.total);
 ```
 
-## Available MCP Tools
-
-The Filesystem server provides these tools:
-
-- `read_file` - Read file contents
-- `write_file` - Write content to a file
-- `list_directory` - List directory contents
-- `search_files` - Search for files by pattern
-- `get_file_info` - Get file metadata
-- `create_directory` - Create a directory
-- `move_file` - Move/rename files
-
-## File Structure
+## Project Structure
 
 ```
 filesystem-server/
-├── README.md           # This file
-├── package.json        # Dependencies and scripts
-├── playwright.config.ts # Playwright configuration
-├── eval-dataset.json   # Test cases (direct + LLM host)
+├── tests/
+│   └── filesystem-eval.spec.ts  # All 8 test patterns
 ├── schemas/
-│   └── fileContentSchema.ts # Zod schemas for validation
-└── tests/
-    └── filesystem-eval.spec.ts # Test implementation
+│   └── fileContentSchema.ts     # Zod schemas for validation
+├── eval-dataset.json            # 13 test cases (8 direct, 5 LLM)
+├── package.json
+├── playwright.config.ts
+└── README.md
 ```
 
-## Learn More
+## Running LLM Tests
 
-- [MCP Filesystem Server](https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem)
-- [@mcp-testing/server-tester Documentation](../../README.md)
-- [fixturify-project](https://www.npmjs.com/package/fixturify-project)
-- [Playwright Test](https://playwright.dev/docs/test-intro)
+LLM host tests require API keys:
 
-## Troubleshooting
-
-### "Server not found" error
-
-Make sure dependencies are installed:
 ```bash
-npm install
+# OpenAI
+OPENAI_API_KEY=your-key npm test
+
+# Anthropic
+ANTHROPIC_API_KEY=your-key npm test
 ```
 
-### LLM tests skipped
+## See Also
 
-LLM host mode tests require API keys. Set the appropriate environment variable:
-```bash
-export OPENAI_API_KEY="your-key"
-export ANTHROPIC_API_KEY="your-key"
-```
-
-### Temp directory not cleaned up
-
-This shouldn't happen with `fixturify-project`, but if it does, manually clean:
-```bash
-# macOS/Linux
-rm -rf /tmp/fs-test-*
-```
-
-## Cost Considerations
-
-- **Direct mode**: Free, no API costs
-- **LLM host mode**: Incurs API costs per test run
-  - OpenAI GPT-4: ~$0.03 per 1K tokens
-  - Anthropic Claude: ~$0.003 per 1K tokens
-
-For cost-effective testing, use direct mode for most tests and LLM host mode for critical user journeys only.
+- **[basic-playwright-usage](../basic-playwright-usage/)** - Minimal starter example
+- **[sqlite-server](../sqlite-server/)** - Database testing example
+- **[glean-server](../glean-server/)** - HTTP transport example

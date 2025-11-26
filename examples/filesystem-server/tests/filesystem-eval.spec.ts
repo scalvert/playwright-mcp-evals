@@ -1,56 +1,49 @@
+/**
+ * Filesystem MCP Server - Comprehensive Testing Example
+ *
+ * Demonstrates all testing patterns: direct API, inline evals, JSON datasets,
+ * and LLM host simulation (E2E).
+ */
+
 import { test as base, expect } from '@playwright/test';
 import { Project } from 'fixturify-project';
-import {
-  loadEvalDataset,
-  runEvalCase,
-  createTextContainsExpectation,
-  createRegexExpectation,
-  createSchemaExpectation,
-  createSnapshotExpectation,
-  createExactExpectation,
-  runConformanceChecks,
-  extractTextFromResponse,
-  normalizeWhitespace,
-  type MCPFixtureApi,
-  type EvalCase,
-} from '@mcp-testing/server-tester';
 import {
   createMCPClientForConfig,
   createMCPFixture,
   closeMCPClient,
   type MCPConfig,
+  type MCPFixtureApi,
+  loadEvalDataset,
+  runEvalDataset,
+  runEvalCase,
+  type EvalCase,
+  createTextContainsExpectation,
+  createRegexExpectation,
+  createSnapshotExpectation,
+  createExactExpectation,
+  runConformanceChecks,
+  simulateLLMHost,
+  extractTextFromResponse,
+  normalizeWhitespace,
 } from '@mcp-testing/server-tester';
-import {
-  ConfigFileSchema,
-  extractAndValidateJSON,
-} from '../schemas/fileContentSchema.js';
+import { ConfigFileSchema } from '../schemas/fileContentSchema.js';
 import path from 'path';
 
-// Import eval dataset for generating individual tests
 import evalDataset from '../eval-dataset.json' with { type: 'json' };
 
-/**
- * Custom fixtures for filesystem testing
- */
 type FilesystemFixtures = {
   fileProject: Project;
   projectPath: string;
   mcp: MCPFixtureApi;
 };
 
-/**
- * Extend Playwright test with filesystem fixtures
- */
 const test = base.extend<FilesystemFixtures>({
   fileProject: async ({}, use) => {
     const project = new Project('fs-test', '1.0.0', {
       files: {
         'readme.txt': 'Hello World',
         'config.json': JSON.stringify(
-          {
-            version: '1.0.0',
-            features: ['logging', 'api', 'authentication'],
-          },
+          { version: '1.0.0', features: ['logging', 'api', 'authentication'] },
           null,
           2
         ),
@@ -59,13 +52,8 @@ const test = base.extend<FilesystemFixtures>({
           'api.md': '# API Reference\n\nAPI documentation',
         },
         data: {
-          'users.csv':
-            'id,name,email\n1,Alice,alice@example.com\n2,Bob,bob@example.com',
-          'settings.json': JSON.stringify(
-            { theme: 'dark', lang: 'en' },
-            null,
-            2
-          ),
+          'users.csv': 'id,name,email\n1,Alice,alice@example.com\n2,Bob,bob@example.com',
+          'settings.json': JSON.stringify({ theme: 'dark', lang: 'en' }, null, 2),
         },
       },
     });
@@ -97,69 +85,8 @@ const test = base.extend<FilesystemFixtures>({
   },
 });
 
-/**
- * Helper to check if an LLM API key is available and valid
- */
-function hasValidApiKey(provider: string): boolean {
-  if (provider === 'openai') {
-    return !!process.env.OPENAI_API_KEY;
-  } else if (provider === 'anthropic') {
-    return !!process.env.ANTHROPIC_API_KEY;
-  }
-  return false;
-}
-
-/**
- * Create expectations map for eval cases
- */
-function createExpectations(evalCase: EvalCase) {
-  const expectations: Record<string, any> = {
-    textContains: createTextContainsExpectation({ caseSensitive: false }),
-    regex: createRegexExpectation(),
-    snapshot: createSnapshotExpectation(),
-    exact: createExactExpectation(),
-  };
-
-  // Add schema expectation if needed
-  if (evalCase.expectedSchemaName === 'configFile') {
-    expectations.schema = async (_context: any, evalCase: any, response: unknown) => {
-      if (!evalCase.expectedSchemaName) {
-        return { pass: true, details: 'N/A' };
-      }
-
-      try {
-        let textContent: string;
-
-        if (typeof response === 'object' && response !== null && 'content' in response) {
-          textContent = (response as { content: string }).content;
-        } else if (typeof response === 'string') {
-          textContent = response;
-        } else {
-          const config = extractAndValidateJSON(response, ConfigFileSchema);
-          return { pass: true, details: `Config validated: ${config.version}` };
-        }
-
-        const jsonData = JSON.parse(textContent);
-        const config = ConfigFileSchema.parse(jsonData);
-        return { pass: true, details: `Config validated: ${config.version}` };
-      } catch (error) {
-        return {
-          pass: false,
-          details: `Schema validation failed: ${error instanceof Error ? error.message : String(error)}`,
-        };
-      }
-    };
-  }
-
-  return expectations;
-}
-
-// =============================================================================
-// Protocol Conformance Tests
-// =============================================================================
-
 test.describe('Protocol Conformance', () => {
-  test('passes all conformance checks', async ({ mcp }) => {
+  test('passes conformance checks', async ({ mcp }) => {
     const result = await runConformanceChecks(mcp, {
       requiredTools: ['read_file', 'list_directory', 'directory_tree'],
       validateSchemas: false,
@@ -179,37 +106,137 @@ test.describe('Protocol Conformance', () => {
       const tools = await mcp.listTools();
       expect(tools).toMatchSnapshot();
     } catch {
-      // Known SDK schema validation issue
       expect(true).toBe(true);
     }
   });
 });
 
-// =============================================================================
-// Direct Mode Eval Tests (Generated from eval-dataset.json)
-// =============================================================================
+test.describe('Direct API Tests', () => {
+  test('reads a file', async ({ mcp }) => {
+    const result = await mcp.callTool('read_file', { path: 'readme.txt' });
+
+    expect(result.isError).not.toBe(true);
+
+    const text = extractTextFromResponse(result);
+    expect(text).toBe('Hello World');
+  });
+
+  test('lists directory contents', async ({ mcp }) => {
+    const result = await mcp.callTool('list_directory', { path: 'docs' });
+
+    expect(result.isError).not.toBe(true);
+
+    const text = extractTextFromResponse(result);
+    expect(text).toContain('guide.md');
+    expect(text).toContain('api.md');
+  });
+
+  test('handles non-existent files', async ({ mcp }) => {
+    const result = await mcp.callTool('read_file', { path: 'does-not-exist.txt' });
+    expect(result.isError).toBe(true);
+  });
+
+  test('reads JSON and validates structure', async ({ mcp }) => {
+    const result = await mcp.callTool('read_file', { path: 'config.json' });
+
+    expect(result.isError).not.toBe(true);
+
+    const text = extractTextFromResponse(result);
+    const config = JSON.parse(text);
+
+    const validated = ConfigFileSchema.parse(config);
+    expect(validated.version).toBe('1.0.0');
+    expect(validated.features).toContain('api');
+  });
+});
+
+test.describe('Inline Eval Cases', () => {
+  test('validates config content with inline case', async ({ mcp }) => {
+    const result = await runEvalCase(
+      {
+        id: 'inline-config-check',
+        toolName: 'read_file',
+        args: { path: 'config.json' },
+        expectedTextContains: ['version', '1.0.0', 'features'],
+      },
+      { textContains: createTextContainsExpectation() },
+      { mcp }
+    );
+
+    expect(result.pass).toBe(true);
+    expect(result.toolName).toBe('read_file');
+  });
+
+  test('validates directory listing with regex', async ({ mcp }) => {
+    const result = await runEvalCase(
+      {
+        id: 'inline-docs-listing',
+        toolName: 'list_directory',
+        args: { path: 'docs' },
+        expectedTextContains: ['guide.md', 'api.md'],
+        expectedRegex: ['\\.md'],
+      },
+      {
+        textContains: createTextContainsExpectation(),
+        regex: createRegexExpectation(),
+      },
+      { mcp }
+    );
+
+    expect(result.pass).toBe(true);
+  });
+});
+
+test.describe('Eval Dataset (Batch)', () => {
+  test('runs all direct mode cases', async ({ mcp }, testInfo) => {
+    const dataset = await loadEvalDataset(
+      path.join(import.meta.dirname, '..', 'eval-dataset.json')
+    );
+
+    const directCases = dataset.cases.filter((c) => c.mode === 'direct' || !c.mode);
+    const directDataset = { ...dataset, cases: directCases };
+
+    const result = await runEvalDataset(
+      {
+        dataset: directDataset,
+        expectations: {
+          textContains: createTextContainsExpectation({ caseSensitive: false }),
+          regex: createRegexExpectation(),
+          exact: createExactExpectation(),
+          snapshot: createSnapshotExpectation(),
+        },
+      },
+      { mcp, testInfo, expect }
+    );
+
+    expect(result.passed).toBe(result.total);
+    expect(result.failed).toBe(0);
+  });
+});
 
 test.describe('Eval: Direct Mode', () => {
-  const directCases = evalDataset.cases.filter(
-    (c) => c.mode === 'direct' || !c.mode
-  );
+  const directCases = evalDataset.cases.filter((c) => c.mode === 'direct' || !c.mode);
 
   for (const evalCase of directCases) {
     test(evalCase.id, async ({ mcp }, testInfo) => {
       const result = await runEvalCase(
         evalCase as EvalCase,
-        createExpectations(evalCase as EvalCase),
+        {
+          textContains: createTextContainsExpectation({ caseSensitive: false }),
+          regex: createRegexExpectation(),
+          exact: createExactExpectation(),
+          snapshot: createSnapshotExpectation(),
+        },
         { mcp, testInfo, expect }
       );
 
-      // Build assertion message from failed expectations
       if (!result.pass) {
         const failures = Object.entries(result.expectations || {})
           .filter(([_, exp]) => !exp.pass)
           .map(([name, exp]) => `${name}: ${exp.details}`)
           .join('\n');
 
-        expect(result.pass, `Eval failed:\n${failures}`).toBe(true);
+        expect.soft(result.pass, `Eval failed:\n${failures}`).toBe(true);
       }
 
       expect(result.pass).toBe(true);
@@ -217,9 +244,52 @@ test.describe('Eval: Direct Mode', () => {
   }
 });
 
-// =============================================================================
-// LLM Host Mode Eval Tests (Generated from eval-dataset.json)
-// =============================================================================
+function hasApiKey(provider: string): boolean {
+  if (provider === 'openai') return !!process.env.OPENAI_API_KEY;
+  if (provider === 'anthropic') return !!process.env.ANTHROPIC_API_KEY;
+  return false;
+}
+
+test.describe('LLM Host Simulation (E2E)', () => {
+  test('LLM discovers and lists directory contents', async ({ mcp }) => {
+    if (!hasApiKey('openai')) {
+      test.skip(true, 'OPENAI_API_KEY not set');
+      return;
+    }
+
+    const result = await simulateLLMHost(
+      mcp,
+      'What files are in the docs directory?',
+      { provider: 'openai', model: 'gpt-4o', temperature: 0 }
+    );
+
+    expect(result.success).toBe(true);
+    expect(result.toolCalls.length).toBeGreaterThan(0);
+
+    const listDirCall = result.toolCalls.find((c) => c.name === 'list_directory');
+    expect(listDirCall).toBeDefined();
+
+    expect(result.response).toContain('guide');
+    expect(result.response).toContain('api');
+  });
+
+  test('LLM reads file and extracts information', async ({ mcp }) => {
+    if (!hasApiKey('openai')) {
+      test.skip(true, 'OPENAI_API_KEY not set');
+      return;
+    }
+
+    const result = await simulateLLMHost(
+      mcp,
+      'Read the config.json file and tell me the version number.',
+      { provider: 'openai', model: 'gpt-4o', temperature: 0 }
+    );
+
+    expect(result.success).toBe(true);
+    expect(result.toolCalls.length).toBeGreaterThan(0);
+    expect(result.response).toContain('1.0.0');
+  });
+});
 
 test.describe('Eval: LLM Host Mode', () => {
   const llmCases = evalDataset.cases.filter((c) => c.mode === 'llm_host');
@@ -228,19 +298,20 @@ test.describe('Eval: LLM Host Mode', () => {
     const provider = evalCase.llmHostConfig?.provider || 'unknown';
 
     test(evalCase.id, async ({ mcp }, testInfo) => {
-      // Skip if API key not available
-      if (!hasValidApiKey(provider)) {
+      if (!hasApiKey(provider)) {
         test.skip(true, `${provider.toUpperCase()}_API_KEY not set`);
         return;
       }
 
       const result = await runEvalCase(
         evalCase as EvalCase,
-        createExpectations(evalCase as EvalCase),
+        {
+          textContains: createTextContainsExpectation({ caseSensitive: false }),
+          regex: createRegexExpectation(),
+        },
         { mcp, testInfo, expect }
       );
 
-      // Check for quota/billing errors and skip gracefully
       if (!result.pass && result.error) {
         if (result.error.includes('429') || result.error.includes('quota')) {
           test.skip(true, `API quota exceeded for ${provider}`);
@@ -262,59 +333,8 @@ test.describe('Eval: LLM Host Mode', () => {
   }
 });
 
-// =============================================================================
-// Manual API Tests (Demonstrating direct MCP client usage)
-// =============================================================================
-
-test.describe('Manual API Tests', () => {
-  test('reads files from temp directory', async ({ mcp }) => {
-    const result = await mcp.callTool('read_file', { path: 'readme.txt' });
-
-    expect(result.isError).not.toBe(true);
-
-    const content = result.content as Array<{ type: string; text: string }>;
-    expect(content[0]?.text).toContain('Hello World');
-  });
-
-  test('lists directory contents', async ({ mcp }) => {
-    const result = await mcp.callTool('list_directory', { path: 'docs' });
-
-    expect(result.isError).not.toBe(true);
-
-    const content = result.content as Array<{ type: string; text: string }>;
-    const text = content[0]?.text || '';
-
-    expect(text).toContain('guide.md');
-    expect(text).toContain('api.md');
-  });
-
-  test('handles directory tree (known server issue)', async ({ mcp }) => {
-    const result = await mcp.callTool('directory_tree', { path: '.' });
-
-    // directory_tree has a validation error in the filesystem server
-    if (result.isError) {
-      expect(result.isError).toBe(true);
-      return;
-    }
-
-    const content = result.content as Array<{ type: string; text: string }>;
-    const text = content[0]?.text || '';
-
-    expect(text).toContain('.md');
-  });
-
-  test('handles non-existent files gracefully', async ({ mcp }) => {
-    const result = await mcp.callTool('read_file', { path: 'does-not-exist.txt' });
-    expect(result.isError).toBe(true);
-  });
-});
-
-// =============================================================================
-// Text Utility Tests
-// =============================================================================
-
 test.describe('Text Utilities', () => {
-  test('extracts text from response', async ({ mcp }) => {
+  test('extracts text from MCP responses', async ({ mcp }) => {
     const result = await mcp.callTool('read_file', { path: 'readme.txt' });
 
     expect(result.isError).not.toBe(true);
@@ -323,7 +343,7 @@ test.describe('Text Utilities', () => {
     expect(text).toBe('Hello World');
   });
 
-  test('normalizes whitespace', async ({ mcp }) => {
+  test('normalizes whitespace for comparison', async ({ mcp }) => {
     const result = await mcp.callTool('read_file', { path: 'docs/guide.md' });
 
     expect(result.isError).not.toBe(true);
@@ -333,17 +353,5 @@ test.describe('Text Utilities', () => {
 
     expect(normalized).toContain('# User Guide');
     expect(normalized).toContain('Complete guide here');
-  });
-
-  test('validates JSON content', async ({ mcp }) => {
-    const result = await mcp.callTool('read_file', { path: 'config.json' });
-
-    expect(result.isError).not.toBe(true);
-
-    const text = extractTextFromResponse(result);
-    const config = JSON.parse(text);
-
-    expect(config.version).toBe('1.0.0');
-    expect(config.features).toEqual(['logging', 'api', 'authentication']);
   });
 });
