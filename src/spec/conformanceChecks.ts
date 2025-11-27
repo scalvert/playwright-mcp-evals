@@ -325,14 +325,18 @@ export async function runConformanceChecks(
 /**
  * Formats server capabilities for display
  */
-function formatCapabilities(capabilities: ServerCapabilities): string {
-  const parts: string[] = [];
-  if (capabilities.tools) parts.push('tools');
-  if (capabilities.resources) parts.push('resources');
-  if (capabilities.prompts) parts.push('prompts');
-  if (capabilities.logging) parts.push('logging');
-  if (capabilities.completions) parts.push('completions');
-  if (capabilities.experimental) parts.push('experimental');
+export function formatCapabilities(capabilities: ServerCapabilities): string {
+  // Deterministic canonical ordering of capabilities
+  const orderedKeys: Array<keyof ServerCapabilities> = [
+    'tools',
+    'resources',
+    'prompts',
+    'logging',
+    'completions',
+    'experimental',
+  ];
+
+  const parts = orderedKeys.filter((k) => Boolean(capabilities[k]));
   return parts.length > 0 ? parts.join(', ') : 'none declared';
 }
 

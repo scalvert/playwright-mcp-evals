@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import {
   runConformanceChecks,
   formatConformanceResult,
+  formatCapabilities,
   type MCPConformanceResult,
 } from './conformanceChecks.js';
 import type { MCPFixtureApi } from '../mcp/fixtures/mcpFixture.js';
@@ -427,5 +428,44 @@ describe('formatConformanceResult', () => {
 
     expect(formatted).toContain('FAIL');
     expect(formatted).toContain('✗');
+  });
+});
+
+describe('formatCapabilities', () => {
+  it('returns "none declared" for an empty capabilities object', () => {
+    const caps: Partial<ServerCapabilities> = {};
+    expect(formatCapabilities(caps as ServerCapabilities)).toBe('none declared');
+  });
+
+  it('returns a single capability when only one is set', () => {
+    const caps: Partial<ServerCapabilities> = { tools: true };
+    expect(formatCapabilities(caps as ServerCapabilities)).toBe('tools');
+  });
+
+  it('preserves deterministic order for multiple capabilities', () => {
+    const caps: Partial<ServerCapabilities> = {
+      completions: true,
+      tools: true,
+      experimental: true,
+    };
+    expect(formatCapabilities(caps as ServerCapabilities)).toBe('tools, completions, experimental');
+  });
+
+  it('ignores falsy capability values', () => {
+    const caps: Partial<ServerCapabilities> = {
+      tools: false,
+      resources: undefined,
+      prompts: null,
+      logging: 0 as unknown as boolean,
+    };
+    expect(formatCapabilities(caps as ServerCapabilities)).toBe('none declared');
+  });
+
+  it('treats non-boolean truthy values as enabled', () => {
+    const caps: Partial<ServerCapabilities> = {
+      tools: 1 as unknown as boolean,
+      completions: 'yes' as unknown as boolean,
+    };
+    expect(formatCapabilities(caps as ServerCapabilities)).toBe('tools, completions');
   });
 });
