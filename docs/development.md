@@ -358,22 +358,7 @@ When adding features:
 
 ## Release Process
 
-(For maintainers)
-
-1. Update version in `package.json`
-2. Update `CHANGELOG.md`
-3. Run all tests and build
-4. Commit and tag
-5. Push to GitHub
-6. Publish to npm
-
-```bash
-npm version patch|minor|major
-npm test && npm run test:playwright
-npm run build
-git push && git push --tags
-npm publish
-```
+See [RELEASE.md](../RELEASE.md) for the release process using release-it.
 
 ## Getting Help
 
