@@ -376,8 +376,8 @@ describe('runConformanceChecks', () => {
       const result = await runConformanceChecks(mcp);
 
       expect(result.raw.tools).toHaveLength(2);
-      expect(result.raw.tools[0].name).toBe('tool1');
-      expect(result.raw.tools[1].name).toBe('tool2');
+      expect(result.raw.tools[0]!.name).toBe('tool1');
+      expect(result.raw.tools[1]!.name).toBe('tool2');
     });
   });
 });

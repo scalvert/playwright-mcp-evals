@@ -53,8 +53,8 @@ describe('mcpFixture', () => {
         const tools = await fixture.listTools();
 
         expect(tools).toHaveLength(2);
-        expect(tools[0].name).toBe('echo');
-        expect(tools[1].name).toBe('add');
+        expect(tools[0]!.name).toBe('echo');
+        expect(tools[1]!.name).toBe('add');
         expect(mockClient.listTools).toHaveBeenCalled();
       });
 
@@ -178,9 +178,9 @@ describe('mcpFixture', () => {
         const fixture = createMCPFixture(mockClient);
 
         // TypeScript should accept typed args
-        interface EchoArgs {
+        type EchoArgs = {
           message: string;
-        }
+        } & Record<string, unknown>;
         const result = await fixture.callTool<EchoArgs>('echo', {
           message: 'typed',
         });

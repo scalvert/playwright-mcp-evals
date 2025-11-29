@@ -246,9 +246,9 @@ describe('runEvalDataset', () => {
 
     expect(result.total).toBe(3);
     expect(result.caseResults).toHaveLength(3);
-    expect(result.caseResults[0].id).toBe('case-1');
-    expect(result.caseResults[1].id).toBe('case-2');
-    expect(result.caseResults[2].id).toBe('case-3');
+    expect(result.caseResults[0]!.id).toBe('case-1');
+    expect(result.caseResults[1]!.id).toBe('case-2');
+    expect(result.caseResults[2]!.id).toBe('case-3');
   });
 
   it('should count passed and failed cases', async () => {
@@ -289,8 +289,8 @@ describe('runEvalDataset', () => {
       context
     );
 
-    expect(result.caseResults[0].datasetName).toBe('my-dataset');
-    expect(result.caseResults[1].datasetName).toBe('my-dataset');
+    expect(result.caseResults[0]!.datasetName).toBe('my-dataset');
+    expect(result.caseResults[1]!.datasetName).toBe('my-dataset');
   });
 
   it('should call onCaseComplete callback', async () => {
@@ -307,8 +307,8 @@ describe('runEvalDataset', () => {
     );
 
     expect(onCaseComplete).toHaveBeenCalledTimes(2);
-    expect((onCaseComplete.mock.calls[0][0] as EvalCase).id).toBe('case-1');
-    expect((onCaseComplete.mock.calls[1][0] as EvalCase).id).toBe('case-2');
+    expect((onCaseComplete.mock.calls[0]![0] as EvalCase).id).toBe('case-1');
+    expect((onCaseComplete.mock.calls[1]![0] as EvalCase).id).toBe('case-2');
   });
 
   it('should stop on failure when stopOnFailure is true', async () => {
@@ -334,8 +334,8 @@ describe('runEvalDataset', () => {
 
     expect(result.total).toBe(2); // Only ran 2 cases
     expect(result.caseResults).toHaveLength(2);
-    expect(result.caseResults[0].id).toBe('case-1');
-    expect(result.caseResults[1].id).toBe('case-2');
+    expect(result.caseResults[0]!.id).toBe('case-1');
+    expect(result.caseResults[1]!.id).toBe('case-2');
   });
 
   it('should continue on failure when stopOnFailure is false', async () => {
@@ -415,7 +415,7 @@ describe('runEvalDataset', () => {
       context
     );
 
-    expect(result.caseResults[0].expectations.judge?.pass).toBe(true);
+    expect(result.caseResults[0]!.expectations.judge?.pass).toBe(true);
   });
 });
 

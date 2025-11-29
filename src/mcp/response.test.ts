@@ -102,9 +102,10 @@ describe('normalizeToolResponse', () => {
     });
 
     it('should use structuredContent string directly', () => {
+      // Cast to unknown to test runtime behavior with string structuredContent
       const result: CallToolResult = {
         content: [],
-        structuredContent: 'plain text structured content',
+        structuredContent: 'plain text structured content' as unknown as Record<string, unknown>,
       };
 
       const normalized = normalizeToolResponse(result);
@@ -115,7 +116,7 @@ describe('normalizeToolResponse', () => {
     it('should prefer content blocks text over structuredContent', () => {
       const result: CallToolResult = {
         content: [{ type: 'text', text: 'From content' }],
-        structuredContent: 'From structured',
+        structuredContent: 'From structured' as unknown as Record<string, unknown>,
       };
 
       const normalized = normalizeToolResponse(result);
@@ -170,7 +171,7 @@ describe('normalizeToolResponse', () => {
 
       const normalized = normalizeToolResponse(result);
 
-      expect(normalized.contentBlocks[0].type).toBe('unknown');
+      expect(normalized.contentBlocks[0]!.type).toBe('unknown');
     });
   });
 });

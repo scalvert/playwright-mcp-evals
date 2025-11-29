@@ -137,7 +137,7 @@ describe('anthropicJudge', () => {
       expect(result.score).toBe(0.9);
 
       // Check that the prompt doesn't include reference section
-      const callArgs = mocks.mockCreate.mock.calls[0][0];
+      const callArgs = mocks.mockCreate.mock.calls[0]![0];
       const userMessage = callArgs.messages.find(
         (m: { role: string }) => m.role === 'user'
       );
@@ -193,7 +193,7 @@ describe('anthropicJudge', () => {
       const candidate = { weather: 'sunny', temperature: 20 };
       await judge.evaluate(candidate, null, 'Evaluate weather data');
 
-      const callArgs = mocks.mockCreate.mock.calls[0][0];
+      const callArgs = mocks.mockCreate.mock.calls[0]![0];
       const userMessage = callArgs.messages.find(
         (m: { role: string }) => m.role === 'user'
       );

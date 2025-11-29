@@ -82,8 +82,7 @@ describe('llmHostSimulation', () => {
       vi.mocked(runSimulation).mockResolvedValue({
         success: true,
         toolCalls: [],
-        finalResponse: 'Done',
-        turns: [],
+        response: 'Done',
       });
 
       await simulateLLMHost(mockMCP, 'Test scenario', {
