@@ -1,5 +1,11 @@
 # @mcp-testing/server-tester
 
+[![npm version](https://img.shields.io/npm/v/@mcp-testing/server-tester)](https://www.npmjs.com/package/@mcp-testing/server-tester)
+[![CI](https://github.com/mcp-testing/server-tester/actions/workflows/ci.yml/badge.svg)](https://github.com/mcp-testing/server-tester/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js Version](https://img.shields.io/node/v/@mcp-testing/server-tester)](https://nodejs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)](https://www.typescriptlang.org/)
+
 > Playwright-based testing framework for MCP servers
 
 > [!WARNING]
@@ -123,7 +129,7 @@ test.describe('MCP Protocol Conformance', () => {
 test.describe('File Operations', () => {
   test('should read a file', async ({ mcp }) => {
     const result = await mcp.callTool('read_file', {
-      path: '/tmp/test.txt'
+      path: '/tmp/test.txt',
     });
     expect(result.content).toContain('Hello');
   });
