@@ -74,7 +74,6 @@ export function getTestFileTemplate(_answers: ProjectAnswers): string {
   return `import { test, expect } from '@mcp-testing/server-tester/fixtures/mcp';
 import {
   runConformanceChecks,
-  formatConformanceResult,
   loadEvalDataset,
   runEvalDataset,
   createExactExpectation,
@@ -88,17 +87,11 @@ test.describe('MCP Server Tests', () => {
   test('should connect to MCP server', async ({ mcp }) => {
     const serverInfo = mcp.getServerInfo();
     expect(serverInfo).toBeTruthy();
-    console.log('Server info:', serverInfo);
   });
 
   test('should list available tools', async ({ mcp }) => {
     const tools = await mcp.listTools();
     expect(tools.length).toBeGreaterThan(0);
-
-    console.log(\`Found \${tools.length} tools:\`);
-    for (const tool of tools) {
-      console.log(\`  - \${tool.name}: \${tool.description ?? '(no description)'}\`);
-    }
   });
 
   test('should run conformance checks', async ({ mcp }) => {
@@ -107,7 +100,6 @@ test.describe('MCP Server Tests', () => {
       checkServerInfo: true,
     });
 
-    console.log(formatConformanceResult(result));
     expect(result.pass).toBe(true);
   });
 

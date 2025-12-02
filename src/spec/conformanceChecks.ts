@@ -335,23 +335,3 @@ function formatCapabilities(capabilities: ServerCapabilities): string {
   if (capabilities.experimental) parts.push('experimental');
   return parts.length > 0 ? parts.join(', ') : 'none declared';
 }
-
-/**
- * Formats conformance check results as a readable string
- *
- * @param result - Conformance check result
- * @returns Formatted string
- */
-export function formatConformanceResult(result: MCPConformanceResult): string {
-  const lines: Array<string> = [];
-
-  lines.push(`Conformance Checks: ${result.pass ? 'PASS ✓' : 'FAIL ✗'}\n`);
-
-  for (const check of result.checks) {
-    const status = check.pass ? '✓' : '✗';
-    lines.push(`  ${status} ${check.name}`);
-    lines.push(`    ${check.message}`);
-  }
-
-  return lines.join('\n');
-}

@@ -1,9 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import {
-  runConformanceChecks,
-  formatConformanceResult,
-  type MCPConformanceResult,
-} from './conformanceChecks.js';
+import { runConformanceChecks } from './conformanceChecks.js';
 import type { MCPFixtureApi } from '../mcp/fixtures/mcpFixture.js';
 import type { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import type { Tool, ServerCapabilities } from '@modelcontextprotocol/sdk/types.js';
@@ -382,50 +378,3 @@ describe('runConformanceChecks', () => {
   });
 });
 
-describe('formatConformanceResult', () => {
-  it('should format passing result', () => {
-    const result: MCPConformanceResult = {
-      pass: true,
-      checks: [
-        { name: 'check1', pass: true, message: 'Check 1 passed' },
-        { name: 'check2', pass: true, message: 'Check 2 passed' },
-      ],
-      raw: {
-        serverInfo: null,
-        capabilities: null,
-        tools: [],
-        resources: null,
-        prompts: null,
-      },
-    };
-
-    const formatted = formatConformanceResult(result);
-
-    expect(formatted).toContain('PASS');
-    expect(formatted).toContain('✓');
-    expect(formatted).toContain('check1');
-    expect(formatted).toContain('check2');
-  });
-
-  it('should format failing result', () => {
-    const result: MCPConformanceResult = {
-      pass: false,
-      checks: [
-        { name: 'check1', pass: true, message: 'Check 1 passed' },
-        { name: 'check2', pass: false, message: 'Check 2 failed' },
-      ],
-      raw: {
-        serverInfo: null,
-        capabilities: null,
-        tools: [],
-        resources: null,
-        prompts: null,
-      },
-    };
-
-    const formatted = formatConformanceResult(result);
-
-    expect(formatted).toContain('FAIL');
-    expect(formatted).toContain('✗');
-  });
-});

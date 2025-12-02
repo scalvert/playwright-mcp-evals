@@ -161,10 +161,7 @@ export type {
   MCPConformanceCheck,
   MCPConformanceRaw,
 } from './spec/conformanceChecks.js';
-export {
-  runConformanceChecks,
-  formatConformanceResult,
-} from './spec/conformanceChecks.js';
+export { runConformanceChecks } from './spec/conformanceChecks.js';
 
 // Reporter
 export type {

@@ -1,8 +1,5 @@
 import { test, expect } from '../src/fixtures/mcp.js';
-import {
-  runConformanceChecks,
-  formatConformanceResult,
-} from '../src/spec/conformanceChecks.js';
+import { runConformanceChecks } from '../src/spec/conformanceChecks.js';
 import { loadEvalDataset } from '../src/evals/datasetLoader.js';
 import { runEvalDataset } from '../src/evals/evalRunner.js';
 import { createExactExpectation } from '../src/evals/expectations/exactExpectation.js';
@@ -40,8 +37,6 @@ test.describe('MCP Server Tests', () => {
       validateSchemas: true,
       checkServerInfo: true,
     });
-
-    console.log(formatConformanceResult(result));
 
     expect(result.pass).toBe(true);
 

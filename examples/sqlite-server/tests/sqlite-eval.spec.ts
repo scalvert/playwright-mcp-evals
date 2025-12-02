@@ -13,7 +13,6 @@ import {
   createSnapshotExpectation,
   createToolCallExpectation,
   runConformanceChecks,
-  formatConformanceResult,
   extractTextFromResponse,
 } from '@mcp-testing/server-tester';
 import {

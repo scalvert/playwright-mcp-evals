@@ -539,20 +539,6 @@ interface ConformanceResult {
 }
 ```
 
-### `formatConformanceResult(result)`
-
-Format conformance check results for display.
-
-**Parameters:**
-- `result: ConformanceResult` - Conformance check result
-
-**Returns:** `string`
-
-```typescript
-const formatted = formatConformanceResult(result);
-console.log(formatted);
-```
-
 ## Type Definitions
 
 ### `EvalCase`
