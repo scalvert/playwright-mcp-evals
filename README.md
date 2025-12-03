@@ -263,6 +263,71 @@ Connect to MCP servers via:
 
 See [Transports Guide](./docs/transports.md) for configuration.
 
+## CLI OAuth Authentication
+
+For MCP servers that require OAuth authentication, the framework provides a CLI-based OAuth flow:
+
+### Interactive Login
+
+```bash
+# Authenticate with an MCP server (opens browser)
+npx mcp-test login https://api.example.com/mcp
+
+# Force re-authentication
+npx mcp-test login https://api.example.com/mcp --force
+```
+
+Tokens are cached in `~/.local/state/mcp-tests/` and automatically refreshed.
+
+### Programmatic Usage
+
+```typescript
+import { CLIOAuthClient } from '@mcp-testing/server-tester';
+
+const client = new CLIOAuthClient({
+  mcpServerUrl: 'https://api.example.com/mcp',
+});
+
+// Get a valid access token (cached, refreshed, or new)
+const result = await client.getAccessToken();
+console.log(`Token: ${result.accessToken}`);
+```
+
+### CI/CD Usage (GitHub Actions)
+
+For automated testing in CI, tokens can be provided via environment variables:
+
+```yaml
+# .github/workflows/mcp-tests.yml
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      MCP_ACCESS_TOKEN: ${{ secrets.MCP_ACCESS_TOKEN }}
+      MCP_REFRESH_TOKEN: ${{ secrets.MCP_REFRESH_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci
+      - run: npm run test:playwright
+```
+
+To obtain tokens for CI:
+1. Run `mcp-test login <server-url>` locally
+2. Copy tokens from `~/.local/state/mcp-tests/<server-key>/tokens.json`
+3. Add as GitHub repository secrets
+
+Alternatively, inject tokens programmatically in your test setup:
+
+```typescript
+import { injectTokens } from '@mcp-testing/server-tester';
+
+// In globalSetup.ts
+await injectTokens('https://api.example.com/mcp', {
+  accessToken: process.env.MCP_ACCESS_TOKEN!,
+  tokenType: 'Bearer',
+});
+```
+
 ## UI Reporter
 
 Interactive web UI for visualizing test results:

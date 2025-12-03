@@ -52,3 +52,33 @@ export {
   performOAuthSetupIfNeeded,
   hasValidOAuthState,
 } from './setupOAuth.js';
+
+// Discovery (RFC 9728)
+export {
+  discoverProtectedResource,
+  discoverAuthorizationServer,
+  DiscoveryError,
+  MCP_PROTOCOL_VERSION,
+  type ProtectedResourceMetadata,
+  type ProtectedResourceDiscoveryResult,
+} from './discovery.js';
+
+// Storage
+export {
+  createFileOAuthStorage,
+  generateServerKey,
+  getStateDir,
+  loadTokensFromEnv,
+  injectTokens,
+  ENV_VAR_NAMES,
+  type OAuthStorage,
+  type FileOAuthStorageConfig,
+  type StoredServerMetadata,
+} from './storage.js';
+
+// CLI OAuth
+export {
+  CLIOAuthClient,
+  type CLIOAuthClientConfig,
+  type CLIOAuthResult,
+} from './cli.js';
