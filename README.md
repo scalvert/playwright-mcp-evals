@@ -277,7 +277,21 @@ npx mcp-test login https://api.example.com/mcp
 npx mcp-test login https://api.example.com/mcp --force
 ```
 
-Tokens are cached in `~/.local/state/mcp-tests/` and automatically refreshed.
+### Token Storage
+
+Tokens are cached locally and automatically refreshed when expired.
+
+**Storage locations:**
+- **Linux**: `$XDG_STATE_HOME/mcp-tests/<server-key>/` or `~/.local/state/mcp-tests/<server-key>/`
+- **macOS**: `~/.local/state/mcp-tests/<server-key>/`
+- **Windows**: `%LOCALAPPDATA%\mcp-tests\<server-key>\`
+
+**Security:**
+- Directory permissions: `0700` (owner only)
+- File permissions: `0600` (owner read/write only)
+- Files stored: `tokens.json`, `client.json`, `server.json`
+
+Use `--state-dir` to override the storage location.
 
 ### Programmatic Usage
 

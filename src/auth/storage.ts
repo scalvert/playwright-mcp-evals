@@ -306,16 +306,17 @@ class FileOAuthStorage implements OAuthStorage {
 
   /**
    * Write data atomically: write to .tmp file, then rename
+   * Files are created with 0o600 permissions (user read/write only)
    */
   private async atomicWrite(filePath: string, data: unknown): Promise<void> {
-    // Ensure directory exists
-    await fs.mkdir(this.stateDir, { recursive: true });
+    // Ensure directory exists with restrictive permissions
+    await fs.mkdir(this.stateDir, { recursive: true, mode: 0o700 });
 
     const tmpPath = `${filePath}.tmp`;
     const content = JSON.stringify(data, null, 2);
 
-    // Write to temp file
-    await fs.writeFile(tmpPath, content, 'utf-8');
+    // Write to temp file with restrictive permissions (user read/write only)
+    await fs.writeFile(tmpPath, content, { encoding: 'utf-8', mode: 0o600 });
 
     // Atomic rename
     await fs.rename(tmpPath, filePath);

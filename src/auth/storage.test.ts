@@ -194,11 +194,11 @@ describe('storage', () => {
       // Should create directory
       expect(mocks.mkdir).toHaveBeenCalled();
 
-      // Should write to temp file
+      // Should write to temp file with secure permissions
       expect(mocks.writeFile).toHaveBeenCalledWith(
         expect.stringContaining('tokens.json.tmp'),
         expect.stringContaining('injected-token'),
-        'utf-8'
+        { encoding: 'utf-8', mode: 0o600 }
       );
 
       // Should rename to final path
@@ -215,7 +215,7 @@ describe('storage', () => {
 
       expect(mocks.mkdir).toHaveBeenCalledWith(
         expect.stringContaining('/custom/state'),
-        { recursive: true }
+        { recursive: true, mode: 0o700 }
       );
     });
   });
@@ -270,9 +270,10 @@ describe('storage', () => {
 
         await storage.saveTokens(tokens);
 
-        // Should create directory
+        // Should create directory with secure permissions
         expect(mocks.mkdir).toHaveBeenCalledWith(expect.any(String), {
           recursive: true,
+          mode: 0o700,
         });
 
         // Should write to .tmp file first
