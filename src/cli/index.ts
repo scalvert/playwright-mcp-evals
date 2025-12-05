@@ -29,6 +29,7 @@ program
   .description('Generate eval dataset by interacting with MCP server')
   .option('-c, --config <path>', 'Path to MCP config')
   .option('-o, --output <path>', 'Output dataset path', 'data/dataset.json')
+  .option('-s, --snapshot', 'Use Playwright snapshot testing for all cases')
   .action(generate);
 
 // Login command

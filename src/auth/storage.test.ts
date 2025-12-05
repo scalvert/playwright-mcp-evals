@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => ({
   writeFile: vi.fn(),
   mkdir: vi.fn(),
   rename: vi.fn(),
+  unlink: vi.fn(),
 }));
 
 vi.mock('node:fs/promises', () => ({
@@ -15,6 +16,7 @@ vi.mock('node:fs/promises', () => ({
   writeFile: mocks.writeFile,
   mkdir: mocks.mkdir,
   rename: mocks.rename,
+  unlink: mocks.unlink,
 }));
 
 import {
@@ -37,6 +39,7 @@ describe('storage', () => {
     mocks.mkdir.mockResolvedValue(undefined);
     mocks.writeFile.mockResolvedValue(undefined);
     mocks.rename.mockResolvedValue(undefined);
+    mocks.unlink.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -287,6 +290,33 @@ describe('storage', () => {
         expect(renameCall).toBeDefined();
         expect(renameCall![0]).toMatch(/tokens\.json\.tmp$/);
         expect(renameCall![1]).toMatch(/tokens\.json$/);
+      });
+    });
+
+    describe('deleteTokens', () => {
+      it('deletes the tokens file', async () => {
+        await storage.deleteTokens();
+
+        expect(mocks.unlink).toHaveBeenCalledWith(
+          expect.stringMatching(/tokens\.json$/)
+        );
+      });
+
+      it('does not throw when file does not exist', async () => {
+        const error = new Error('ENOENT') as NodeJS.ErrnoException;
+        error.code = 'ENOENT';
+        mocks.unlink.mockRejectedValue(error);
+
+        // Should not throw
+        await expect(storage.deleteTokens()).resolves.toBeUndefined();
+      });
+
+      it('throws on other file errors', async () => {
+        const error = new Error('Permission denied') as NodeJS.ErrnoException;
+        error.code = 'EACCES';
+        mocks.unlink.mockRejectedValue(error);
+
+        await expect(storage.deleteTokens()).rejects.toThrow('Permission denied');
       });
     });
 

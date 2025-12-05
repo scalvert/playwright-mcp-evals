@@ -52,6 +52,7 @@ expect(result.passed).toBe(result.total);
 
 - 🎭 **Playwright Integration** - Use MCP servers in Playwright tests with idiomatic fixtures
 - 📊 **Matrix Evals** - Run dataset-driven evaluations across multiple transports
+- 📸 **Snapshot Testing** - Capture and compare tool responses using Playwright snapshots
 - 🤖 **LLM-as-a-Judge** - Optional semantic evaluation using OpenAI or Anthropic
 - 🔌 **Multiple Transports** - Support for both stdio (local) and HTTP (remote) connections
 - ✅ **Protocol Conformance** - Built-in checks for MCP spec compliance
@@ -204,9 +205,9 @@ export default defineConfig({
 ## Documentation
 
 - **[Quick Start Guide](./docs/quickstart.md)** - Detailed setup and configuration
-- **[Expectations](./docs/expectations.md)** - All validation types (exact, schema, regex, text contains, LLM judge)
+- **[Expectations](./docs/expectations.md)** - All validation types (exact, schema, regex, text contains, snapshot, LLM judge)
 - **[API Reference](./docs/api-reference.md)** - Complete API documentation
-- **[CLI Commands](./docs/cli.md)** - `init` and `generate` command details
+- **[CLI Commands](./docs/cli.md)** - `init`, `generate`, and `login` command details
 - **[UI Reporter](./docs/ui-reporter.md)** - Interactive web UI for test results
 - **[Transports](./docs/transports.md)** - Stdio vs HTTP configuration
 - **[Development](./docs/development.md)** - Contributing and building
@@ -262,6 +263,23 @@ Connect to MCP servers via:
 - **HTTP** - Remote servers
 
 See [Transports Guide](./docs/transports.md) for configuration.
+
+### Snapshot Testing
+
+Use Playwright's snapshot testing to capture and compare tool responses:
+
+```bash
+# Generate dataset with snapshot expectations
+npx mcp-test generate --snapshot -o data/evals.json
+
+# First run captures snapshots
+npx playwright test
+
+# Update snapshots when server behavior changes
+npx playwright test --update-snapshots
+```
+
+This uses Playwright's native `toMatchSnapshot()` under the hood, which stores snapshots in `__snapshots__/` folders and provides excellent diff output on failures.
 
 ## CLI OAuth Authentication
 

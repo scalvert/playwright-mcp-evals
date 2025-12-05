@@ -118,6 +118,12 @@ const DEFAULT_TIMEOUT_MS = 300_000;
 const DEFAULT_CLIENT_NAME = '@mcp-testing/server-tester';
 
 /**
+ * Default TTL for cached server metadata (24 hours)
+ * After this time, metadata will be re-discovered
+ */
+const DEFAULT_METADATA_TTL_MS = 24 * 60 * 60 * 1000;
+
+/**
  * CLI OAuth client for command-line authentication flows
  */
 export class CLIOAuthClient {
@@ -231,11 +237,7 @@ export class CLIOAuthClient {
    * Clear stored credentials
    */
   async clearCredentials(): Promise<void> {
-    // Save empty tokens to clear the file
-    await this.storage.saveTokens({
-      accessToken: '',
-      tokenType: 'Bearer',
-    });
+    await this.storage.deleteTokens();
     debug('Cleared stored credentials');
   }
 
@@ -249,11 +251,16 @@ export class CLIOAuthClient {
     // Check cached server metadata
     const cachedMetadata = await this.storage.loadServerMetadata();
     if (cachedMetadata) {
-      debug('Using cached server metadata');
-      return {
-        protectedResource: cachedMetadata.protectedResource,
-        authServer: cachedMetadata.authServer,
-      };
+      // Check if metadata is stale (older than TTL)
+      const age = Date.now() - cachedMetadata.discoveredAt;
+      if (age < DEFAULT_METADATA_TTL_MS) {
+        debug('Using cached server metadata (age: %dms)', age);
+        return {
+          protectedResource: cachedMetadata.protectedResource,
+          authServer: cachedMetadata.authServer,
+        };
+      }
+      debug('Cached server metadata is stale (age: %dms), re-discovering', age);
     }
 
     // Discover protected resource

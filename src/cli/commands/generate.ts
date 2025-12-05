@@ -19,6 +19,7 @@ import { suggestExpectations } from '../utils/expectationSuggester.js';
 interface GenerateOptions {
   config?: string;
   output?: string;
+  snapshot?: boolean;
 }
 
 export async function generate(options: GenerateOptions): Promise<void> {
@@ -190,19 +191,28 @@ export async function generate(options: GenerateOptions): Promise<void> {
         }
 
         // Build test case
-        const { caseId, description, useTextContains, useRegex, useExact } =
-          await inquirer.prompt([
-            {
-              type: 'input',
-              name: 'caseId',
-              message: 'Test case ID:',
-              default: `${toolName}-${dataset.cases.length + 1}`,
-            },
-            {
-              type: 'input',
-              name: 'description',
-              message: 'Description (optional):',
-            },
+        const prompts: Array<{
+          type: string;
+          name: string;
+          message: string;
+          default?: string | boolean;
+        }> = [
+          {
+            type: 'input',
+            name: 'caseId',
+            message: 'Test case ID:',
+            default: `${toolName}-${dataset.cases.length + 1}`,
+          },
+          {
+            type: 'input',
+            name: 'description',
+            message: 'Description (optional):',
+          },
+        ];
+
+        // Only ask about expectations if not using --snapshot mode
+        if (!options.snapshot) {
+          prompts.push(
             {
               type: 'confirm',
               name: 'useTextContains',
@@ -221,7 +231,25 @@ export async function generate(options: GenerateOptions): Promise<void> {
               message: 'Add exact match expectation?',
               default: false,
             },
-          ]);
+            {
+              type: 'confirm',
+              name: 'useSnapshot',
+              message: 'Use Playwright snapshot testing?',
+              default: false,
+            }
+          );
+        }
+
+        const answers = await inquirer.prompt(prompts);
+        const { caseId, description, useTextContains, useRegex, useExact, useSnapshot } =
+          answers as {
+            caseId: string;
+            description: string;
+            useTextContains?: boolean;
+            useRegex?: boolean;
+            useExact?: boolean;
+            useSnapshot?: boolean;
+          };
 
         const testCase: EvalCase = {
           id: caseId,
@@ -229,6 +257,11 @@ export async function generate(options: GenerateOptions): Promise<void> {
           toolName,
           args,
         };
+
+        // --snapshot flag or user chose snapshot
+        if (options.snapshot || useSnapshot) {
+          testCase.expectedSnapshot = caseId;
+        }
 
         if (useTextContains && suggestions.textContains.length > 0) {
           testCase.expectedTextContains = suggestions.textContains;
@@ -245,6 +278,9 @@ export async function generate(options: GenerateOptions): Promise<void> {
         dataset.cases.push(testCase);
 
         console.log(chalk.green(`\n✓ Added test case "${caseId}"`));
+        if (options.snapshot || useSnapshot) {
+          console.log(chalk.gray(`  Using Playwright snapshot: "${caseId}"`));
+        }
       }
 
       // Ask to add more
@@ -282,7 +318,16 @@ export async function generate(options: GenerateOptions): Promise<void> {
       console.log(chalk.gray(`Output: ${outputPath}`));
       console.log();
       console.log(chalk.cyan('Next steps:'));
-      console.log(chalk.gray('  npm test'));
+      console.log(chalk.gray('  npx playwright test'));
+
+      // Check if any cases use snapshots
+      const hasSnapshots = dataset.cases.some((c) => c.expectedSnapshot);
+      if (hasSnapshots) {
+        console.log();
+        console.log(chalk.cyan('Snapshot testing:'));
+        console.log(chalk.gray('  First run will capture snapshots'));
+        console.log(chalk.gray('  Update snapshots: npx playwright test --update-snapshots'));
+      }
     } else {
       console.log(chalk.yellow('\nNo test cases added.'));
     }
