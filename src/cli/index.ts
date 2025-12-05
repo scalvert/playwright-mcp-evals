@@ -39,6 +39,7 @@ program
   .argument('<server-url>', 'MCP server URL to authenticate with')
   .option('--force', 'Force re-authentication even if valid token exists')
   .option('--state-dir <dir>', 'Custom directory for token storage')
+  .option('--scopes <scopes>', 'Comma-separated list of scopes to request (default: all from server)')
   .action(login);
 
 program.parse();

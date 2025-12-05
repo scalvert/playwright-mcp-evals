@@ -102,6 +102,11 @@ export interface CLIOAuthResult {
   refreshed: boolean;
 
   /**
+   * Scopes that were requested (only set for new authentications)
+   */
+  requestedScopes?: string[];
+
+  /**
    * Whether token came from environment variables
    */
   fromEnv: boolean;
@@ -214,7 +219,11 @@ export class CLIOAuthClient {
     const client = await this.getOrRegisterClient(authServer);
 
     // Perform OAuth flow
-    const tokens = await this.performOAuthFlow(authServer, client, protectedResource);
+    const { tokens, requestedScopes } = await this.performOAuthFlow(
+      authServer,
+      client,
+      protectedResource
+    );
 
     return {
       accessToken: tokens.accessToken,
@@ -222,6 +231,7 @@ export class CLIOAuthClient {
       expiresAt: tokens.expiresAt,
       refreshed: false,
       fromEnv: false,
+      requestedScopes,
     };
   }
 
@@ -389,7 +399,7 @@ export class CLIOAuthClient {
     authServer: AuthServerMetadata,
     client: StoredClientInfo,
     protectedResource: ProtectedResourceMetadata
-  ): Promise<StoredTokens> {
+  ): Promise<{ tokens: StoredTokens; requestedScopes: string[] }> {
     // Generate PKCE and state
     const pkce = await generatePKCE();
     const state = generateState();
@@ -399,15 +409,17 @@ export class CLIOAuthClient {
     const redirectUri = `http://127.0.0.1:${port}/callback`;
 
     try {
-      // Build authorization URL
-      const scopes = this.config.scopes ??
+      // Determine scopes: user-provided > discovered > fallback
+      const requestedScopes = this.config.scopes ??
         protectedResource.scopes_supported ?? ['openid'];
+
+      debug('Requesting scopes: %s', requestedScopes.join(', '));
 
       const authUrl = buildAuthorizationUrl({
         authServer,
         clientId: client.clientId,
         redirectUri,
-        scopes,
+        scopes: requestedScopes,
         codeChallenge: pkce.codeChallenge,
         state,
         resource: protectedResource.resource,
@@ -435,7 +447,7 @@ export class CLIOAuthClient {
       const tokens = this.tokenResultToStoredTokens(tokenResult);
       await this.storage.saveTokens(tokens);
 
-      return tokens;
+      return { tokens, requestedScopes };
     } finally {
       // Clean up callback server
       server.close();

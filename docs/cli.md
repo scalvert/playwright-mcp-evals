@@ -360,6 +360,7 @@ npx mcp-test login <server-url> [options]
 
 - `--force` - Force re-authentication even if a valid token exists
 - `--state-dir <dir>` - Custom directory for token storage
+- `--scopes <scopes>` - Comma-separated list of scopes to request (default: all from server metadata)
 - `-h, --help` - Display help
 
 ### Basic Workflow
@@ -387,6 +388,25 @@ npx mcp-test login https://api.example.com/mcp --force
 # Authenticating with https://api.example.com/mcp...
 # Authentication successful!
 ```
+
+### Requesting Specific Scopes
+
+By default, the CLI requests all scopes advertised by the server's OAuth metadata. To request specific scopes:
+
+```bash
+npx mcp-test login https://api.example.com/mcp --scopes read,write
+
+# Output:
+# Authenticating with https://api.example.com/mcp...
+# Authentication successful!
+# Scopes: read, write
+# Token expires: 1/15/2025, 3:30:00 PM
+```
+
+This is useful when:
+- You only need a subset of available scopes
+- The server requires explicit scope selection
+- You want to test with minimal permissions
 
 ### Token Storage
 
