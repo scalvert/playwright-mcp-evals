@@ -6,7 +6,7 @@
  */
 
 import * as http from 'node:http';
-import type { AddressInfo } from 'node:net';
+import type { AddressInfo, Socket } from 'node:net';
 import createDebug from 'debug';
 import {
   generatePKCE,
@@ -523,7 +523,7 @@ export class CLIOAuthClient {
       const server = http.createServer();
 
       // Track active connections so we can force-close them
-      const connections = new Set<import('node:net').Socket>();
+      const connections = new Set<Socket>();
       server.on('connection', (socket) => {
         connections.add(socket);
         socket.on('close', () => connections.delete(socket));
