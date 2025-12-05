@@ -8,6 +8,7 @@ import { getStateDir } from '../../auth/storage.js';
 export interface LoginOptions {
   force?: boolean;
   stateDir?: string;
+  scopes?: string;
 }
 
 /**
@@ -28,9 +29,15 @@ export async function login(
     process.exit(1);
   }
 
+  // Parse scopes from comma-separated string
+  const scopes = options.scopes
+    ? options.scopes.split(',').map((s) => s.trim())
+    : undefined;
+
   const client = new CLIOAuthClient({
     mcpServerUrl: serverUrl,
     stateDir: options.stateDir,
+    scopes,
   });
 
   try {
@@ -48,6 +55,11 @@ export async function login(
       console.log('Token refreshed successfully.');
     } else {
       console.log('Authentication successful!');
+    }
+
+    // Show requested scopes for new authentications
+    if (result.requestedScopes && result.requestedScopes.length > 0) {
+      console.log(`Scopes: ${result.requestedScopes.join(', ')}`);
     }
 
     // Show expiration info

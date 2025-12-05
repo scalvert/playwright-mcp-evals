@@ -7,6 +7,45 @@ import type { LLMHostConfig } from './llmHost/llmHostTypes.js';
 export type EvalMode = 'direct' | 'llm_host';
 
 /**
+ * Built-in sanitizer names for common variable patterns
+ */
+export type BuiltInSanitizer =
+  | 'timestamp' // Unix timestamps (milliseconds and seconds)
+  | 'uuid' // UUIDs v1-v5
+  | 'iso-date' // ISO 8601 date strings
+  | 'objectId' // MongoDB ObjectIds
+  | 'jwt'; // JWT tokens
+
+/**
+ * Custom regex-based sanitizer
+ */
+export interface RegexSanitizer {
+  /** Regex pattern to match */
+  pattern: string;
+  /** Replacement string (default: "[SANITIZED]") */
+  replacement?: string;
+}
+
+/**
+ * Field removal sanitizer - removes specified fields from objects
+ */
+export interface FieldRemovalSanitizer {
+  /** Field paths to remove (supports dot notation for nested fields) */
+  remove: string[];
+}
+
+/**
+ * Snapshot sanitizer configuration
+ *
+ * Sanitizers transform response data before snapshot comparison,
+ * allowing variable content (timestamps, IDs, etc.) to be normalized.
+ */
+export type SnapshotSanitizer =
+  | BuiltInSanitizer
+  | RegexSanitizer
+  | FieldRemovalSanitizer;
+
+/**
  * A single eval test case
  *
  * Note: toolName and args are required for backward compatibility
@@ -91,6 +130,29 @@ export interface EvalCase {
   expectedSnapshot?: string;
 
   /**
+   * Sanitizers to apply before snapshot comparison
+   *
+   * Sanitizers normalize variable content (timestamps, IDs, tokens) so that
+   * snapshots remain stable across test runs. Use when responses contain
+   * dynamic data that would otherwise cause snapshot mismatches.
+   *
+   * Built-in sanitizers: 'timestamp', 'uuid', 'iso-date', 'objectId', 'jwt'
+   *
+   * @example
+   * ```json
+   * {
+   *   "snapshotSanitizers": [
+   *     "uuid",
+   *     "iso-date",
+   *     { "pattern": "token_[a-zA-Z0-9]+", "replacement": "[TOKEN]" },
+   *     { "remove": ["lastLoginAt", "sessionId"] }
+   *   ]
+   * }
+   * ```
+   */
+  snapshotSanitizers?: SnapshotSanitizer[];
+
+  /**
    * Additional metadata for this test case
    *
    * For 'llm_host' mode, can include 'expectedToolCalls' for validation
@@ -141,6 +203,23 @@ const LLMHostConfigSchema = z.object({
 });
 
 /**
+ * Zod schema for SnapshotSanitizer
+ */
+const SnapshotSanitizerSchema = z.union([
+  // Built-in sanitizers
+  z.enum(['timestamp', 'uuid', 'iso-date', 'objectId', 'jwt']),
+  // Custom regex sanitizer
+  z.object({
+    pattern: z.string(),
+    replacement: z.string().optional(),
+  }),
+  // Field removal sanitizer
+  z.object({
+    remove: z.array(z.string()),
+  }),
+]);
+
+/**
  * Zod schema for EvalCase
  *
  * toolName and args are optional for llm_host mode (which uses scenario instead)
@@ -159,6 +238,7 @@ export const EvalCaseSchema = z.object({
   expectedTextContains: z.union([z.string(), z.array(z.string())]).optional(),
   expectedRegex: z.union([z.string(), z.array(z.string())]).optional(),
   expectedSnapshot: z.string().optional(),
+  snapshotSanitizers: z.array(SnapshotSanitizerSchema).optional(),
   metadata: z.record(z.unknown()).optional(),
 });
 

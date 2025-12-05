@@ -110,6 +110,10 @@ export type {
   EvalDataset,
   SerializedEvalDataset,
   EvalMode,
+  SnapshotSanitizer,
+  BuiltInSanitizer,
+  RegexSanitizer,
+  FieldRemovalSanitizer,
 } from './evals/datasetTypes.js';
 export {
   EvalCaseSchema,
@@ -148,7 +152,11 @@ export {
   type TextContainsExpectationOptions,
 } from './evals/expectations/textContainsExpectation.js';
 export { createRegexExpectation } from './evals/expectations/regexExpectation.js';
-export { createSnapshotExpectation } from './evals/expectations/snapshotExpectation.js';
+export {
+  createSnapshotExpectation,
+  applySanitizers,
+  BUILT_IN_PATTERNS,
+} from './evals/expectations/snapshotExpectation.js';
 export {
   extractTextFromResponse,
   normalizeWhitespace,

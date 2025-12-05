@@ -95,6 +95,7 @@
     "esbuild": "^0.24.0",
     "eslint": "^8.57.1",
     "lucide-react": "^0.460.0",
+    "memfs": "^4.51.1",
     "openai": "^4.77.3",
     "postcss": "^8.4.49",
     "prettier": "^3.4.2",

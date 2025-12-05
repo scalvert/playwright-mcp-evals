@@ -52,6 +52,7 @@ expect(result.passed).toBe(result.total);
 
 - 🎭 **Playwright Integration** - Use MCP servers in Playwright tests with idiomatic fixtures
 - 📊 **Matrix Evals** - Run dataset-driven evaluations across multiple transports
+- 📸 **Snapshot Testing** - Capture and compare deterministic responses with optional sanitizers for variable data
 - 🤖 **LLM-as-a-Judge** - Optional semantic evaluation using OpenAI or Anthropic
 - 🔌 **Multiple Transports** - Support for both stdio (local) and HTTP (remote) connections
 - ✅ **Protocol Conformance** - Built-in checks for MCP spec compliance
@@ -204,9 +205,9 @@ export default defineConfig({
 ## Documentation
 
 - **[Quick Start Guide](./docs/quickstart.md)** - Detailed setup and configuration
-- **[Expectations](./docs/expectations.md)** - All validation types (exact, schema, regex, text contains, LLM judge)
+- **[Expectations](./docs/expectations.md)** - All validation types (exact, schema, regex, text contains, snapshot, LLM judge)
 - **[API Reference](./docs/api-reference.md)** - Complete API documentation
-- **[CLI Commands](./docs/cli.md)** - `init` and `generate` command details
+- **[CLI Commands](./docs/cli.md)** - `init`, `generate`, `login`, and `token` command details
 - **[UI Reporter](./docs/ui-reporter.md)** - Interactive web UI for test results
 - **[Transports](./docs/transports.md)** - Stdio vs HTTP configuration
 - **[Development](./docs/development.md)** - Contributing and building
@@ -262,6 +263,37 @@ Connect to MCP servers via:
 - **HTTP** - Remote servers
 
 See [Transports Guide](./docs/transports.md) for configuration.
+
+### Snapshot Testing
+
+Snapshot testing captures tool responses and compares them against stored baselines. This works best for **deterministic responses** like help text, configuration, or schema discovery.
+
+> **Note:** For responses with timestamps, IDs, or live data, use [sanitizers](./docs/expectations.md#snapshot-sanitizers) to normalize variable content, or consider schema validation instead.
+
+```bash
+# Generate dataset with snapshot expectations
+npx mcp-test generate --snapshot -o data/evals.json
+
+# First run captures snapshots
+npx playwright test
+
+# Update snapshots when server behavior changes
+npx playwright test --update-snapshots
+```
+
+For responses with variable data, use sanitizers:
+
+```json
+{
+  "id": "get-user",
+  "toolName": "get_user",
+  "args": { "id": "123" },
+  "expectedSnapshot": "user-profile",
+  "snapshotSanitizers": ["uuid", "iso-date", { "remove": ["lastLoginAt"] }]
+}
+```
+
+See the [Expectations Guide](./docs/expectations.md#snapshot-testing) for when to use snapshots vs other validation methods.
 
 ## CLI OAuth Authentication
 
@@ -325,10 +357,18 @@ jobs:
       - run: npm run test:playwright
 ```
 
-To obtain tokens for CI:
-1. Run `mcp-test login <server-url>` locally
-2. Copy tokens from `~/.local/state/mcp-tests/<server-key>/tokens.json`
-3. Add as GitHub repository secrets
+**To set up GitHub Actions secrets:**
+
+1. Authenticate locally: `npx mcp-test login <server-url>`
+2. Export tokens for GitHub: `npx mcp-test token <server-url> --format gh`
+3. Run the output `gh secret set` commands (requires [GitHub CLI](https://cli.github.com/))
+
+The `token` command supports multiple formats:
+- `env` (default) - Shell-compatible `KEY=value` pairs
+- `json` - JSON object for scripting
+- `gh` - Ready-to-paste GitHub CLI commands
+
+See the [CLI Guide](./docs/cli.md#token---export-tokens-for-cicd) for details.
 
 Alternatively, inject tokens programmatically in your test setup:
 

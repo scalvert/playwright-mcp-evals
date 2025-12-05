@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => ({
   mockStorage: {
     loadTokens: vi.fn(),
     saveTokens: vi.fn(),
+    deleteTokens: vi.fn(),
     loadClient: vi.fn(),
     saveClient: vi.fn(),
     loadServerMetadata: vi.fn(),
@@ -185,6 +186,44 @@ describe('CLIOAuthClient', () => {
       expect(result.fromEnv).toBe(false);
       expect(mocks.refreshAccessToken).toHaveBeenCalled();
     });
+
+    it('attempts token refresh when token is expired', async () => {
+      const storedTokens = {
+        accessToken: 'expired-token',
+        tokenType: 'Bearer',
+        refreshToken: 'valid-refresh-token',
+        expiresAt: Date.now() - 3600000, // Expired
+      };
+      mocks.mockStorage.loadTokens.mockResolvedValue(storedTokens);
+      mocks.mockStorage.hasValidToken.mockResolvedValue(false);
+
+      // Set up cached server metadata
+      mocks.mockStorage.loadServerMetadata.mockResolvedValue({
+        authServer: mockAuthServer,
+        protectedResource: mockProtectedResource.metadata,
+        discoveredAt: Date.now(),
+      });
+
+      // Set up cached client
+      mocks.mockStorage.loadClient.mockResolvedValue({
+        clientId: 'test-client-id',
+      });
+
+      // Mock successful refresh
+      mocks.refreshAccessToken.mockResolvedValue({
+        accessToken: 'new-access-token',
+        tokenType: 'Bearer',
+        expiresIn: 3600,
+      });
+
+      const client = new CLIOAuthClient({ mcpServerUrl: serverUrl });
+      const result = await client.getAccessToken();
+
+      // Verify refresh was attempted and succeeded
+      expect(mocks.refreshAccessToken).toHaveBeenCalled();
+      expect(result.accessToken).toBe('new-access-token');
+      expect(result.refreshed).toBe(true);
+    });
   });
 
   describe('hasStoredCredentials', () => {
@@ -211,14 +250,14 @@ describe('CLIOAuthClient', () => {
   });
 
   describe('clearCredentials', () => {
-    it('saves empty tokens to storage', async () => {
+    it('deletes tokens from storage', async () => {
+      mocks.mockStorage.deleteTokens.mockResolvedValue(undefined);
+
       const client = new CLIOAuthClient({ mcpServerUrl: serverUrl });
       await client.clearCredentials();
 
-      expect(mocks.mockStorage.saveTokens).toHaveBeenCalledWith({
-        accessToken: '',
-        tokenType: 'Bearer',
-      });
+      expect(mocks.mockStorage.deleteTokens).toHaveBeenCalled();
+      expect(mocks.mockStorage.saveTokens).not.toHaveBeenCalled();
     });
   });
 
@@ -285,11 +324,11 @@ describe('CLIOAuthClient', () => {
   });
 
   describe('discovery caching', () => {
-    it('uses cached server metadata when available', async () => {
+    it('uses cached server metadata when available and not stale', async () => {
       const cachedMetadata = {
         authServer: mockAuthServer,
         protectedResource: mockProtectedResource.metadata,
-        discoveredAt: Date.now(),
+        discoveredAt: Date.now(), // Fresh metadata
       };
       mocks.mockStorage.loadServerMetadata.mockResolvedValue(cachedMetadata);
 
@@ -311,7 +350,38 @@ describe('CLIOAuthClient', () => {
       const client = new CLIOAuthClient({ mcpServerUrl: serverUrl });
       await client.getAccessToken();
 
-      // Should not call discovery since metadata is cached
+      // Should not call discovery since metadata is cached and fresh
+      expect(mocks.discoverProtectedResource).not.toHaveBeenCalled();
+      expect(mocks.discoverAuthorizationServer).not.toHaveBeenCalled();
+    });
+
+    it('uses fresh metadata within TTL without re-discovery during refresh', async () => {
+      const freshMetadata = {
+        authServer: mockAuthServer,
+        protectedResource: mockProtectedResource.metadata,
+        discoveredAt: Date.now() - 1000, // 1 second ago (well within 24h TTL)
+      };
+      mocks.mockStorage.loadServerMetadata.mockResolvedValue(freshMetadata);
+
+      // Set up for a token refresh scenario
+      mocks.mockStorage.loadTokens.mockResolvedValue({
+        accessToken: 'expired',
+        tokenType: 'Bearer',
+        refreshToken: 'refresh-token',
+        expiresAt: Date.now() - 1000,
+      });
+      mocks.mockStorage.hasValidToken.mockResolvedValue(false);
+      mocks.mockStorage.loadClient.mockResolvedValue({ clientId: 'cached-client' });
+      mocks.refreshAccessToken.mockResolvedValue({
+        accessToken: 'new-token',
+        tokenType: 'Bearer',
+        expiresIn: 3600,
+      });
+
+      const client = new CLIOAuthClient({ mcpServerUrl: serverUrl });
+      await client.getAccessToken();
+
+      // Should not call discovery since metadata is fresh and we have refresh token
       expect(mocks.discoverProtectedResource).not.toHaveBeenCalled();
       expect(mocks.discoverAuthorizationServer).not.toHaveBeenCalled();
     });

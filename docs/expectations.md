@@ -8,6 +8,7 @@ The framework supports multiple types of expectations to validate MCP tool respo
 - [Text Contains](#text-contains)
 - [Regex Pattern Matching](#regex-pattern-matching)
 - [Schema Validation](#schema-validation)
+- [Snapshot Testing](#snapshot-testing)
 - [LLM-as-a-Judge](#llm-as-a-judge)
 - [Combining Multiple Expectations](#combining-multiple-expectations)
 - [Examples](#examples)
@@ -196,6 +197,159 @@ const UserSchema = z.object({
 });
 ```
 
+## Snapshot Testing
+
+Captures and compares tool responses against stored snapshots using Playwright's built-in snapshot functionality. Best for deterministic responses where you want to detect any changes.
+
+> **Important:** Snapshot testing works best with deterministic, stable responses. For responses containing timestamps, IDs, or live data, use [sanitizers](#snapshot-sanitizers) or consider [Schema Validation](#schema-validation) instead.
+
+### When to Use Snapshots
+
+| Good Use Cases | Poor Use Cases |
+|----------------|----------------|
+| Help text and documentation | Live data (weather, stock prices) |
+| Configuration and schema discovery | Responses with timestamps |
+| Mocked/stubbed servers in CI | Random IDs, session tokens |
+| Static content tools | Non-deterministic ordering |
+| Regression testing with controlled data | Pagination cursors |
+
+### Usage
+
+```typescript
+import { createSnapshotExpectation } from '@mcp-testing/server-tester';
+
+const expectations = {
+  snapshot: createSnapshotExpectation(),
+};
+
+// Requires testInfo and expect from Playwright
+await runEvalDataset(
+  { dataset, expectations },
+  { mcp, testInfo, expect }
+);
+```
+
+### Dataset Format
+
+```json
+{
+  "id": "help-command",
+  "toolName": "help",
+  "args": {},
+  "expectedSnapshot": "help-output"
+}
+```
+
+### Workflow
+
+1. **First run**: Playwright captures snapshots to `__snapshots__/` folder
+2. **Subsequent runs**: Compares responses against captured snapshots
+3. **Update snapshots**: Run `npx playwright test --update-snapshots` when responses change intentionally
+
+### Snapshot Sanitizers
+
+When responses contain variable data that would cause snapshot mismatches, use sanitizers to normalize the content before comparison.
+
+#### Built-in Sanitizers
+
+| Sanitizer | Matches | Replacement |
+|-----------|---------|-------------|
+| `timestamp` | Unix timestamps (10-13 digits) | `[TIMESTAMP]` |
+| `uuid` | UUIDs v1-v5 | `[UUID]` |
+| `iso-date` | ISO 8601 dates | `[ISO_DATE]` |
+| `objectId` | MongoDB ObjectIds (24 hex chars) | `[OBJECT_ID]` |
+| `jwt` | JWT tokens | `[JWT]` |
+
+#### Dataset Format with Sanitizers
+
+```json
+{
+  "id": "get-user-profile",
+  "toolName": "get_user",
+  "args": { "id": "123" },
+  "expectedSnapshot": "user-profile",
+  "snapshotSanitizers": [
+    "uuid",
+    "iso-date",
+    { "pattern": "session_[a-zA-Z0-9]+", "replacement": "[SESSION]" },
+    { "remove": ["lastLoginAt", "metrics.requestId"] }
+  ]
+}
+```
+
+#### Sanitizer Types
+
+**Built-in (string)**: Use predefined patterns for common variable data.
+
+```json
+"snapshotSanitizers": ["uuid", "timestamp", "iso-date"]
+```
+
+**Custom regex**: Define your own patterns.
+
+```json
+"snapshotSanitizers": [
+  { "pattern": "token_[a-zA-Z0-9]+", "replacement": "[TOKEN]" },
+  { "pattern": "v\\d+\\.\\d+\\.\\d+", "replacement": "[VERSION]" }
+]
+```
+
+**Field removal**: Remove specific fields from objects (supports dot notation).
+
+```json
+"snapshotSanitizers": [
+  { "remove": ["createdAt", "updatedAt", "session.id", "metrics.timing"] }
+]
+```
+
+### Example: API Response with Variable Data
+
+```json
+// Original response from MCP tool
+{
+  "user": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "name": "Alice",
+    "email": "alice@example.com",
+    "lastLogin": "2025-01-15T10:30:00Z",
+    "sessionToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }
+}
+
+// After sanitizers: ["uuid", "iso-date", "jwt"]
+{
+  "user": {
+    "id": "[UUID]",
+    "name": "Alice",
+    "email": "alice@example.com",
+    "lastLogin": "[ISO_DATE]",
+    "sessionToken": "[JWT]"
+  }
+}
+```
+
+### Programmatic Sanitizer Use
+
+For advanced use cases, you can apply sanitizers directly:
+
+```typescript
+import { applySanitizers, BUILT_IN_PATTERNS } from '@mcp-testing/server-tester';
+
+const sanitized = applySanitizers(response, [
+  'uuid',
+  'timestamp',
+  { pattern: 'custom_\\d+', replacement: '[CUSTOM]' },
+]);
+```
+
+### Best Practices
+
+- **Start without sanitizers** for truly deterministic tools
+- **Add sanitizers incrementally** as you discover variable fields
+- **Prefer field removal** when entire fields are unpredictable
+- **Use schema validation** when structure matters more than exact values
+- **Document why** each sanitizer is needed in your test case description
+
 ## LLM-as-a-Judge
 
 Semantic evaluation using LLMs (OpenAI or Anthropic). Best for subjective criteria like relevance, quality, or tone.
@@ -382,6 +536,8 @@ const result = await runEvalDataset(
 | JSON with variable values | Schema | Type-safe validation with flexibility |
 | Markdown/formatted text | Text Contains | Order-independent content validation |
 | Text with specific format | Regex | Pattern-based validation |
+| Deterministic output (help, config) | Snapshot | Detect any changes to known-good output |
+| Variable data with stable structure | Snapshot + Sanitizers | Normalize timestamps/IDs before comparison |
 | Subjective quality | LLM Judge | Semantic understanding required |
 
 ### Next Steps

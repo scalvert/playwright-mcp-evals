@@ -67,6 +67,11 @@ export interface OAuthStorage {
   saveTokens(tokens: StoredTokens): Promise<void>;
 
   /**
+   * Delete stored tokens
+   */
+  deleteTokens(): Promise<void>;
+
+  /**
    * Check if valid (non-expired) token exists
    * @param bufferMs - Buffer time in milliseconds before expiration (default: 60000)
    */
@@ -273,6 +278,10 @@ class FileOAuthStorage implements OAuthStorage {
     await this.atomicWrite(this.tokensPath, tokens);
   }
 
+  async deleteTokens(): Promise<void> {
+    await this.deleteFile(this.tokensPath);
+  }
+
   async hasValidToken(bufferMs: number = DEFAULT_EXPIRY_BUFFER_MS): Promise<boolean> {
     const tokens = await this.loadTokens();
 
@@ -320,5 +329,19 @@ class FileOAuthStorage implements OAuthStorage {
 
     // Atomic rename
     await fs.rename(tmpPath, filePath);
+  }
+
+  /**
+   * Delete a file, ignoring errors if the file doesn't exist
+   */
+  private async deleteFile(filePath: string): Promise<void> {
+    try {
+      await fs.unlink(filePath);
+    } catch (error) {
+      // Ignore ENOENT (file doesn't exist)
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+        throw error;
+      }
+    }
   }
 }

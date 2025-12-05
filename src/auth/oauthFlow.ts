@@ -102,6 +102,11 @@ export interface TokenExchangeConfig {
   code: string;
 
   /**
+   * OAuth state parameter for CSRF validation
+   */
+  state: string;
+
+  /**
    * PKCE code verifier
    */
   codeVerifier: string;
@@ -234,15 +239,25 @@ export async function exchangeCodeForTokens(
     ? oauth.ClientSecretBasic(config.clientSecret)
     : oauth.None();
 
-  // Create callback parameters with the authorization code
-  const callbackParameters = new URLSearchParams();
-  callbackParameters.set('code', config.code);
+  // Build callback URL with code and state for validation
+  const callbackUrl = new URL(config.redirectUri);
+  callbackUrl.searchParams.set('code', config.code);
+  callbackUrl.searchParams.set('state', config.state);
+
+  // Validate the auth response - oauth4webapi requires this before token exchange
+  // This throws on error, returns URLSearchParams on success
+  const validatedParams = oauth.validateAuthResponse(
+    config.authServer.server,
+    client,
+    callbackUrl,
+    config.state
+  );
 
   const response = await oauth.authorizationCodeGrantRequest(
     config.authServer.server,
     client,
     clientAuth,
-    callbackParameters,
+    validatedParams,
     config.redirectUri,
     config.codeVerifier
   );
