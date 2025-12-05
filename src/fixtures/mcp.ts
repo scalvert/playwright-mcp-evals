@@ -4,11 +4,13 @@ import type { OAuthClientProvider } from '@modelcontextprotocol/sdk/client/auth.
 import {
   createMCPClientForConfig,
   closeMCPClient,
+} from '../mcp/clientFactory.js';
+import {
   createMCPFixture,
-  PlaywrightOAuthClientProvider,
-  type MCPConfig,
   type MCPFixtureApi,
-} from '../index.js';
+} from '../mcp/fixtures/mcpFixture.js';
+import { PlaywrightOAuthClientProvider } from '../auth/oauthClientProvider.js';
+import type { MCPConfig } from '../config/mcpConfig.js';
 
 /**
  * Extended test fixtures for MCP testing
