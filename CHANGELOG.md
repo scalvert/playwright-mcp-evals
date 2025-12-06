@@ -1,3 +1,16 @@
+
+## v0.9.0 (2025-12-06)
+
+#### :boom: Breaking Change
+* [#6](https://github.com/mcp-testing/server-tester/pull/6) refactor!: Simplify token storage API to single clear path ([@steve-calvert-glean](https://github.com/steve-calvert-glean))
+
+#### :house: Internal
+* [#7](https://github.com/mcp-testing/server-tester/pull/7) chore: Apply Prettier formatting across codebase ([@steve-calvert-glean](https://github.com/steve-calvert-glean))
+
+#### Committers: 1
+- Steve Calvert ([@steve-calvert-glean](https://github.com/steve-calvert-glean))
+
+
 ## v0.8.0 (2025-12-05)
 
 #### :rocket: Enhancement
