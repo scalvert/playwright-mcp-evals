@@ -3,10 +3,10 @@
  */
 
 import { Command } from 'commander';
-import { init } from './commands/init.js';
-import { generate } from './commands/generate.js';
-import { login } from './commands/login.js';
-import { token } from './commands/token.js';
+import { init } from './commands/init/index.js';
+import { generate } from './commands/generate/index.js';
+import { login } from './commands/login/index.js';
+import { token } from './commands/token/index.js';
 
 const program = new Command();
 
