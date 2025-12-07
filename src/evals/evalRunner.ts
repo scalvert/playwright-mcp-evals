@@ -354,7 +354,7 @@ export async function runEvalCase(
   return {
     id: evalCase.id,
     datasetName: options.datasetName ?? 'single-case',
-    toolName: evalCase.toolName || evalCase.scenario || 'llm_host',
+    toolName: evalCase.toolName ?? evalCase.scenario ?? 'unknown',
     mode,
     source: 'eval',
     pass: didCasePass(error, expectationResults),
@@ -437,14 +437,13 @@ export async function runEvalDataset(
     }
   }
 
-  // Aggregate results
+  const total = caseResults.length;
   const passed = caseResults.filter((r) => r.pass).length;
-  const failed = caseResults.filter((r) => !r.pass).length;
 
   const result: EvalRunnerResult = {
-    total: caseResults.length,
+    total,
     passed,
-    failed,
+    failed: total - passed,
     caseResults,
     durationMs: Date.now() - startTime,
   };

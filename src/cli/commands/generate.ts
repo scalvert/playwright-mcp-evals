@@ -1,5 +1,4 @@
-import { writeFile, readFile } from 'fs/promises';
-import { existsSync } from 'fs';
+import { writeFile, readFile, stat } from 'fs/promises';
 import { resolve } from 'path';
 import inquirer from 'inquirer';
 import chalk from 'chalk';
@@ -59,7 +58,15 @@ export async function generate(options: GenerateOptions): Promise<void> {
     let dataset: EvalDataset;
     let existingCases: EvalCase[] = [];
 
-    if (existsSync(outputPath)) {
+    let fileExists = false;
+    try {
+      await stat(outputPath);
+      fileExists = true;
+    } catch {
+      // File doesn't exist
+    }
+
+    if (fileExists) {
       const { append } = await inquirer.prompt([
         {
           type: 'confirm',

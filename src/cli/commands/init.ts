@@ -1,6 +1,5 @@
-import { mkdir, writeFile } from 'fs/promises';
+import { mkdir, writeFile, stat } from 'fs/promises';
 import { join, resolve } from 'path';
-import { existsSync } from 'fs';
 import inquirer from 'inquirer';
 import chalk from 'chalk';
 import ora from 'ora';
@@ -90,8 +89,15 @@ export async function init(options: InitOptions): Promise<void> {
   const targetDir = resolve(options.dir || '.');
   const projectPath = join(targetDir, answers.projectName);
 
-  // Check if directory exists
-  if (existsSync(projectPath)) {
+  let dirExists = false;
+  try {
+    await stat(projectPath);
+    dirExists = true;
+  } catch {
+    // Directory doesn't exist
+  }
+
+  if (dirExists) {
     const { overwrite } = await inquirer.prompt([
       {
         type: 'confirm',
