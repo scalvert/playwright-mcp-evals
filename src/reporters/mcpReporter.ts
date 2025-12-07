@@ -131,16 +131,46 @@ export default class MCPReporter implements Reporter {
         // For test results, use the describe block name as the suite identifier
         const suiteName = test.parent?.title || 'Uncategorized Tests';
 
+        // Smart detection: Check if test expects an error based on naming conventions
+        // Tests with these patterns in the title are expected to return errors
+        const titleLower = test.title.toLowerCase();
+        const expectsError =
+          titleLower.includes('error') ||
+          titleLower.includes('invalid') ||
+          titleLower.includes('missing') ||
+          titleLower.includes('fails') ||
+          titleLower.includes('rejects') ||
+          titleLower.includes('throws');
+
+        // For error case tests, flip the pass logic:
+        // - If expects error and got error: pass
+        // - If expects error and no error: fail
+        // - If no expectation and got error: fail
+        // - If no expectation and no error: pass
+        const pass = expectsError ? callData.isError : !callData.isError;
+
         const syntheticResult: EvalCaseResult = {
           id: `${test.title}-${callData.toolName}`,
           datasetName: suiteName,
           toolName: callData.toolName,
           mode: 'direct',
           source: 'test',
-          pass: !callData.isError,
+          pass,
           response: callData.result,
-          error: callData.isError ? 'Tool call returned error' : undefined,
-          expectations: {}, // No expectations for direct API calls
+          error:
+            callData.isError && !expectsError
+              ? 'Tool call returned error'
+              : undefined,
+          expectations: expectsError
+            ? {
+                error: {
+                  pass,
+                  details: pass
+                    ? 'Tool correctly returned error as expected'
+                    : 'Expected error but tool succeeded',
+                },
+              }
+            : {},
           durationMs: callData.durationMs,
         };
 
@@ -249,6 +279,7 @@ export default class MCPReporter implements Reporter {
       regex: 0,
       snapshot: 0,
       judge: 0,
+      error: 0,
     };
 
     this.allResults.forEach((r) => {
@@ -258,6 +289,7 @@ export default class MCPReporter implements Reporter {
       if (r.expectations.regex) expectationBreakdown.regex++;
       if (r.expectations.snapshot) expectationBreakdown.snapshot++;
       if (r.expectations.judge) expectationBreakdown.judge++;
+      if (r.expectations.error) expectationBreakdown.error++;
     });
 
     return {

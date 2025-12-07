@@ -130,6 +130,28 @@ export interface EvalCase {
   expectedSnapshot?: string;
 
   /**
+   * Expected error response
+   *
+   * When set, the test expects the tool to return `isError: true`.
+   * This is useful for testing error handling (e.g., missing required params).
+   *
+   * - `true`: Expects any error
+   * - `string`: Expects error message to contain this substring
+   * - `string[]`: Expects error message to contain all substrings
+   *
+   * @example
+   * ```json
+   * {
+   *   "id": "search-missing-query",
+   *   "toolName": "search",
+   *   "args": {},
+   *   "expectedError": true
+   * }
+   * ```
+   */
+  expectedError?: boolean | string | string[];
+
+  /**
    * Sanitizers to apply before snapshot comparison
    *
    * Sanitizers normalize variable content (timestamps, IDs, tokens) so that
@@ -238,6 +260,9 @@ export const EvalCaseSchema = z.object({
   expectedTextContains: z.union([z.string(), z.array(z.string())]).optional(),
   expectedRegex: z.union([z.string(), z.array(z.string())]).optional(),
   expectedSnapshot: z.string().optional(),
+  expectedError: z
+    .union([z.boolean(), z.string(), z.array(z.string())])
+    .optional(),
   snapshotSanitizers: z.array(SnapshotSanitizerSchema).optional(),
   metadata: z.record(z.unknown()).optional(),
 });

@@ -145,6 +145,7 @@ export {
   applySanitizers,
   BUILT_IN_PATTERNS,
 } from './evals/expectations/snapshotExpectation.js';
+export { createErrorExpectation } from './evals/expectations/errorExpectation.js';
 export {
   extractTextFromResponse,
   normalizeWhitespace,

@@ -65,6 +65,7 @@ export type ExpectationMap = {
   regex?: EvalExpectation;
   snapshot?: EvalExpectation;
   judge?: EvalExpectation;
+  error?: EvalExpectation;
 };
 
 /**
@@ -123,6 +124,7 @@ export interface EvalCaseResult {
     regex?: EvalExpectationResult;
     snapshot?: EvalExpectationResult;
     judge?: EvalExpectationResult;
+    error?: EvalExpectationResult;
   };
 
   /**
@@ -248,6 +250,12 @@ async function executeToolCall(
       }
 
       const result = await mcp.callTool(evalCase.toolName, evalCase.args);
+
+      // For error expectations, return the full result so isError can be checked
+      // For other expectations, return the content (backwards compatible)
+      if (evalCase.expectedError !== undefined) {
+        return { response: result };
+      }
       return { response: result.structuredContent ?? result.content };
     }
   } catch (err) {
