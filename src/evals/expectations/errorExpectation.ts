@@ -5,19 +5,12 @@
  * This is useful for testing error handling, e.g., missing required params.
  */
 
+import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import {
   createRawExpectation,
   type ValidationResult,
 } from './createExpectation.js';
 import { extractTextFromResponse, findMissingSubstrings } from './textUtils.js';
-
-/**
- * MCP tool response shape (subset for error checking)
- */
-interface MCPToolResponse {
-  isError?: boolean;
-  content?: unknown;
-}
 
 /**
  * Creates an error expectation
@@ -59,7 +52,7 @@ export const createErrorExpectation = createRawExpectation<
   getExpected: (evalCase) => evalCase.expectedError,
 
   validate: (response, expectedError): ValidationResult => {
-    const result = response as MCPToolResponse;
+    const result = response as CallToolResult;
     const hasError = result?.isError === true;
 
     // Check if tool returned an error
