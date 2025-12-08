@@ -1,6 +1,6 @@
 {
   "name": "SQLite MCP Server Evaluation",
-  "description": "Comprehensive evaluation suite for the official SQLite MCP server, demonstrating database operations with both direct and LLM host testing modes",
+  "description": "Evaluation suite for the official SQLite MCP server, demonstrating database operations with direct mode testing",
   "cases": [
     {
       "id": "should query all users",
@@ -191,143 +191,6 @@
       ]
     },
     {
-      "id": "should count users using OpenAI",
-      "description": "LLM (OpenAI) counts users in natural language",
-      "mode": "llm_host",
-      "toolName": "placeholder",
-      "args": {},
-      "scenario": "How many users are in the database?",
-      "llmHostConfig": {
-        "provider": "openai",
-        "model": "gpt-4",
-        "temperature": 0.0,
-        "maxTokens": 1000
-      },
-      "expectedTextContains": "4",
-      "metadata": {
-        "expectedToolCalls": [
-          {
-            "name": "read_query",
-            "required": true
-          }
-        ]
-      }
-    },
-    {
-      "id": "should list tables using Anthropic",
-      "description": "LLM (Anthropic) lists database tables",
-      "mode": "llm_host",
-      "toolName": "placeholder",
-      "args": {},
-      "scenario": "What tables exist in this database?",
-      "llmHostConfig": {
-        "provider": "anthropic",
-        "model": "claude-3-5-sonnet-20241022",
-        "temperature": 0.0,
-        "maxTokens": 1000
-      },
-      "expectedTextContains": ["users", "posts"],
-      "metadata": {
-        "expectedToolCalls": [
-          {
-            "name": "list_tables",
-            "required": true
-          }
-        ]
-      }
-    },
-    {
-      "id": "should find Alice's published posts",
-      "description": "LLM finds posts by specific user",
-      "mode": "llm_host",
-      "toolName": "placeholder",
-      "args": {},
-      "scenario": "Show me all published posts written by Alice",
-      "llmHostConfig": {
-        "provider": "openai",
-        "model": "gpt-4",
-        "temperature": 0.0
-      },
-      "expectedTextContains": "Alice",
-      "metadata": {
-        "expectedToolCalls": [
-          {
-            "name": "read_query",
-            "required": true
-          }
-        ]
-      }
-    },
-    {
-      "id": "should find admin users with LLM",
-      "description": "LLM finds users with specific role",
-      "mode": "llm_host",
-      "toolName": "placeholder",
-      "args": {},
-      "scenario": "Which users have the admin role?",
-      "llmHostConfig": {
-        "provider": "anthropic",
-        "model": "claude-3-5-sonnet-20241022",
-        "temperature": 0.0
-      },
-      "expectedTextContains": "Alice",
-      "metadata": {
-        "expectedToolCalls": [
-          {
-            "name": "read_query",
-            "required": true
-          }
-        ]
-      }
-    },
-    {
-      "id": "should count Bob's posts with LLM",
-      "description": "LLM counts posts for specific user",
-      "mode": "llm_host",
-      "toolName": "placeholder",
-      "args": {},
-      "scenario": "How many posts has Bob written?",
-      "llmHostConfig": {
-        "provider": "openai",
-        "model": "gpt-4",
-        "temperature": 0.0
-      },
-      "expectedTextContains": ["2", "Bob"],
-      "metadata": {
-        "expectedToolCalls": [
-          {
-            "name": "read_query",
-            "required": true
-          }
-        ]
-      }
-    },
-    {
-      "id": "should describe table structure with LLM",
-      "description": "LLM describes table structure",
-      "mode": "llm_host",
-      "toolName": "placeholder",
-      "args": {},
-      "scenario": "What columns does the users table have?",
-      "llmHostConfig": {
-        "provider": "anthropic",
-        "model": "claude-3-5-sonnet-20241022",
-        "temperature": 0.0
-      },
-      "expectedTextContains": ["id", "name", "email"],
-      "metadata": {
-        "expectedToolCalls": [
-          {
-            "name": "describe_table",
-            "arguments": {
-              "table_name": "users"
-            },
-            "required": true
-          }
-        ]
-      }
-    },
-    {
       "id": "should match users list snapshot",
       "description": "Snapshot test for all users query result",
       "mode": "direct",
@@ -335,7 +198,8 @@
       "args": {
         "query": "SELECT * FROM users ORDER BY id"
       },
-      "expectedSnapshot": "users-list.json"
+      "expectedSnapshot": "users-list.json",
+      "snapshotSanitizers": ["timestamp"]
     },
     {
       "id": "should match posts with users snapshot",
@@ -362,10 +226,9 @@
     "notes": [
       "This dataset tests the official SQLite MCP server from Anthropic",
       "Direct mode tests specific SQL queries with known results",
-      "LLM host mode tests natural language to SQL translation",
       "All databases are created in temporary directories using fixturify-project + better-sqlite3",
-      "No API keys required for direct mode tests",
-      "LLM tests require OPENAI_API_KEY or ANTHROPIC_API_KEY environment variables"
+      "No API keys required - all tests run locally",
+      "See filesystem-server example for LLM host mode testing patterns"
     ]
   }
 }

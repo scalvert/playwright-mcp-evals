@@ -188,6 +188,19 @@ export interface EvalCase {
   snapshotSanitizers?: SnapshotSanitizer[];
 
   /**
+   * Authentication type used for this test case
+   *
+   * Used for filtering and categorizing tests by auth method in the reporter.
+   * - 'oauth': OAuth 2.1 with PKCE
+   * - 'bearer-token': Static bearer token
+   * - 'none': No authentication
+   *
+   * For eval datasets, set explicitly. For Playwright tests, auto-detected
+   * from mcpConfig.auth settings.
+   */
+  authType?: 'oauth' | 'bearer-token' | 'none';
+
+  /**
    * Additional metadata for this test case
    *
    * For 'llm_host' mode, can include 'expectedToolCalls' for validation
@@ -277,6 +290,7 @@ export const EvalCaseSchema = z.object({
     .union([z.boolean(), z.string(), z.array(z.string())])
     .optional(),
   snapshotSanitizers: z.array(SnapshotSanitizerSchema).optional(),
+  authType: z.enum(['oauth', 'bearer-token', 'none']).optional(),
   metadata: z.record(z.unknown()).optional(),
 });
 

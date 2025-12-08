@@ -4,8 +4,11 @@ import {
   FlaskConical,
   ChevronDown,
   ChevronRight,
+  Shield,
 } from 'lucide-react';
 import type { MCPEvalResult } from '../../types';
+
+type AuthFilterType = 'all' | 'oauth' | 'bearer-token' | 'none';
 
 interface ResultsTableProps {
   results: MCPEvalResult[];
@@ -24,6 +27,7 @@ export function ResultsTable({ results, onSelectResult }: ResultsTableProps) {
   const [sourceFilter, setSourceFilter] = useState<'all' | 'eval' | 'test'>(
     'all'
   );
+  const [authFilter, setAuthFilter] = useState<AuthFilterType>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(
     new Set()
@@ -42,6 +46,14 @@ export function ResultsTable({ results, onSelectResult }: ResultsTableProps) {
       filtered = filtered.filter((r) => r.source === sourceFilter);
     }
 
+    if (authFilter !== 'all') {
+      filtered = filtered.filter((r) => {
+        // Treat undefined authType as 'none'
+        const resultAuthType = r.authType ?? 'none';
+        return resultAuthType === authFilter;
+      });
+    }
+
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter((r) => {
@@ -54,7 +66,7 @@ export function ResultsTable({ results, onSelectResult }: ResultsTableProps) {
     }
 
     return filtered;
-  }, [results, filter, sourceFilter, searchQuery]);
+  }, [results, filter, sourceFilter, authFilter, searchQuery]);
 
   const groupedResults = useMemo(() => {
     const groups = new Map<string, MCPEvalResult[]>();
@@ -151,6 +163,20 @@ export function ResultsTable({ results, onSelectResult }: ResultsTableProps) {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
+        {/* Auth Type Filter */}
+        <div className="flex items-center gap-2">
+          <Shield size={16} className="text-muted-foreground" />
+          <select
+            value={authFilter}
+            onChange={(e) => setAuthFilter(e.target.value as AuthFilterType)}
+            className="px-3 py-2 text-sm rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+          >
+            <option value="all">All Auth</option>
+            <option value="oauth">OAuth</option>
+            <option value="bearer-token">Token</option>
+            <option value="none">No Auth</option>
+          </select>
+        </div>
         <div className="flex gap-2">
           <button
             onClick={() => setFilter('all')}
@@ -295,10 +321,18 @@ export function ResultsTable({ results, onSelectResult }: ResultsTableProps) {
                               {result.toolName}
                             </code>
 
-                            {/* Mode */}
-                            <span className="px-2 py-0.5 text-xs bg-muted rounded shrink-0">
-                              {result.mode}
-                            </span>
+                            {/* Auth Type Badge */}
+                            {result.authType && result.authType !== 'none' && (
+                              <span
+                                className={`px-2 py-0.5 text-xs rounded shrink-0 ${
+                                  result.authType === 'oauth'
+                                    ? 'bg-amber-500/20 text-amber-700 dark:text-amber-400'
+                                    : 'bg-cyan-500/20 text-cyan-700 dark:text-cyan-400'
+                                }`}
+                              >
+                                {result.authType === 'oauth' ? 'OAuth' : 'Token'}
+                              </span>
+                            )}
 
                             {/* Duration */}
                             <span className="text-xs text-muted-foreground shrink-0 w-16 text-right">

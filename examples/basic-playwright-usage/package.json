@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@mcp-testing/server-tester": "file:../..",
-    "@modelcontextprotocol/server-filesystem": "^2025.1.14",
-    "@playwright/test": "^1.49.1"
+    "@modelcontextprotocol/server-filesystem": "^2025.1.14"
   }
 }

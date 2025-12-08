@@ -1,0 +1,27 @@
+[
+  {
+    "id": 1,
+    "title": "Getting Started with SQLite",
+    "author": "Alice"
+  },
+  {
+    "id": 2,
+    "title": "Draft: Advanced Topics",
+    "author": "Alice"
+  },
+  {
+    "id": 3,
+    "title": "Database Best Practices",
+    "author": "Bob"
+  },
+  {
+    "id": 4,
+    "title": "Performance Tuning",
+    "author": "Bob"
+  },
+  {
+    "id": 5,
+    "title": "My First Post",
+    "author": "Charlie"
+  }
+]

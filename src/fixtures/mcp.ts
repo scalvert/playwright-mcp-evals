@@ -8,9 +8,22 @@ import {
 import {
   createMCPFixture,
   type MCPFixtureApi,
+  type AuthType,
 } from '../mcp/fixtures/mcpFixture.js';
 import { PlaywrightOAuthClientProvider } from '../auth/oauthClientProvider.js';
 import type { MCPConfig } from '../config/mcpConfig.js';
+
+/**
+ * Determines the authentication type from an MCP config
+ */
+function getAuthTypeFromConfig(mcpConfig?: MCPConfig): AuthType {
+  if (!mcpConfig?.auth) return 'none';
+  // OAuth is configured via authStatePath or oauth object
+  if (mcpConfig.auth.oauth?.authStatePath) return 'oauth';
+  // Static token auth
+  if (mcpConfig.auth.accessToken) return 'bearer-token';
+  return 'none';
+}
 
 /**
  * Extended test fixtures for MCP testing
@@ -99,7 +112,11 @@ export const test = base.extend<MCPFixtures>({
    * Automatically tracks all MCP operations for the reporter
    */
   mcp: async ({ mcpClient }, use, testInfo) => {
-    const api = createMCPFixture(mcpClient, testInfo);
+    // Determine auth type from project config
+    const useConfig = testInfo.project.use as { mcpConfig?: MCPConfig };
+    const authType = getAuthTypeFromConfig(useConfig.mcpConfig);
+
+    const api = createMCPFixture(mcpClient, testInfo, { authType });
     await use(api);
   },
 });

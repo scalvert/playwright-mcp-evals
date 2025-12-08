@@ -17,7 +17,6 @@
     "evals"
   ],
   "devDependencies": {
-    "@playwright/test": "^1.49.0",
     "@types/better-sqlite3": "^7.6.11",
     "@types/node": "^22.10.2",
     "better-sqlite3": "^11.7.0",

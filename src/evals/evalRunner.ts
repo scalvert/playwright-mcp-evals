@@ -89,8 +89,9 @@ export interface EvalCaseResult {
 
   /**
    * Evaluation mode (direct or llm_host)
+   * @deprecated Mode is inferred from test context, not displayed in reports
    */
-  mode: 'direct' | 'llm_host';
+  mode?: 'direct' | 'llm_host';
 
   /**
    * Source of this result
@@ -126,6 +127,14 @@ export interface EvalCaseResult {
     judge?: EvalExpectationResult;
     error?: EvalExpectationResult;
   };
+
+  /**
+   * Authentication type used for this test
+   * - 'oauth': OAuth 2.1 with PKCE
+   * - 'bearer-token': Static bearer token
+   * - 'none': No authentication
+   */
+  authType?: 'oauth' | 'bearer-token' | 'none';
 
   /**
    * Execution time in milliseconds
@@ -361,6 +370,7 @@ export async function runEvalCase(
     response,
     error,
     expectations: expectationResults,
+    authType: evalCase.authType,
     durationMs: Date.now() - startTime,
   };
 }

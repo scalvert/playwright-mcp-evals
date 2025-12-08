@@ -25,6 +25,24 @@ try {
 }
 
 /**
+ * Authentication type for test categorization
+ */
+export type AuthType = 'oauth' | 'bearer-token' | 'none';
+
+/**
+ * Options for creating an MCP fixture
+ */
+export interface MCPFixtureOptions {
+  /**
+   * Authentication type used for this test
+   * - 'oauth': OAuth 2.1 with PKCE
+   * - 'bearer-token': Static bearer token
+   * - 'none': No authentication
+   */
+  authType?: AuthType;
+}
+
+/**
  * High-level API for interacting with MCP servers in tests
  *
  * This interface wraps the raw MCP Client with test-friendly methods
@@ -91,8 +109,10 @@ export interface MCPFixtureApi {
  */
 export function createMCPFixture(
   client: Client,
-  testInfo?: TestInfo
+  testInfo?: TestInfo,
+  options?: MCPFixtureOptions
 ): MCPFixtureApi {
+  const authType = options?.authType ?? 'none';
   // If no testInfo, return basic API without tracking
   if (!testInfo) {
     return {
@@ -185,6 +205,7 @@ export function createMCPFixture(
               result,
               durationMs,
               isError: result.isError || false,
+              authType,
             },
             null,
             2

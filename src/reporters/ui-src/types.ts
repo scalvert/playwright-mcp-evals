@@ -26,12 +26,12 @@ export interface MCPEvalResult {
   id: string;
   datasetName: string;
   toolName: string;
-  mode: 'direct' | 'llm_host';
   source: 'eval' | 'test';
   pass: boolean;
   response: unknown;
   error?: string;
   expectations: Record<string, MCPEvalExpectationResult>;
+  authType?: 'oauth' | 'bearer-token' | 'none';
   durationMs: number;
 }
 

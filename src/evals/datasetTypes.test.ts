@@ -102,6 +102,56 @@ describe('datasetTypes', () => {
 
       expect(result.args).toEqual(evalCase.args);
     });
+
+    it('should accept eval case with authType oauth', () => {
+      const evalCase = {
+        id: 'test-1',
+        toolName: 'search',
+        args: { query: 'test' },
+        authType: 'oauth',
+      };
+
+      const result = validateEvalCase(evalCase);
+
+      expect(result.authType).toBe('oauth');
+    });
+
+    it('should accept eval case with authType bearer-token', () => {
+      const evalCase = {
+        id: 'test-1',
+        toolName: 'search',
+        args: { query: 'test' },
+        authType: 'bearer-token',
+      };
+
+      const result = validateEvalCase(evalCase);
+
+      expect(result.authType).toBe('bearer-token');
+    });
+
+    it('should accept eval case with authType none', () => {
+      const evalCase = {
+        id: 'test-1',
+        toolName: 'search',
+        args: { query: 'test' },
+        authType: 'none',
+      };
+
+      const result = validateEvalCase(evalCase);
+
+      expect(result.authType).toBe('none');
+    });
+
+    it('should reject eval case with invalid authType', () => {
+      const evalCase = {
+        id: 'test-1',
+        toolName: 'search',
+        args: { query: 'test' },
+        authType: 'invalid-auth',
+      };
+
+      expect(() => validateEvalCase(evalCase)).toThrow();
+    });
   });
 
   describe('validateEvalDataset', () => {

@@ -133,6 +133,7 @@ const test = base.extend<SQLiteFixtures>({
       transport: 'stdio',
       command: 'npx',
       args: ['-y', 'mcp-server-sqlite-npx', dbPath],
+      quiet: true, // Suppress server startup messages in test output
     };
 
     const client = await createMCPClientForConfig(config);
