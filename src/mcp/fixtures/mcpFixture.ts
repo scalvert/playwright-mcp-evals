@@ -112,7 +112,7 @@ export function createMCPFixture(
   testInfo?: TestInfo,
   options?: MCPFixtureOptions
 ): MCPFixtureApi {
-  const authType = options?.authType;
+  const authType = options?.authType ?? 'none';
   // If no testInfo, return basic API without tracking
   if (!testInfo) {
     return {

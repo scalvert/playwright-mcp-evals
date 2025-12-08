@@ -26,7 +26,6 @@ export interface MCPEvalResult {
   id: string;
   datasetName: string;
   toolName: string;
-  mode: 'direct' | 'llm_host';
   source: 'eval' | 'test';
   pass: boolean;
   response: unknown;

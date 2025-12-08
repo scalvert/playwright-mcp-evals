@@ -321,11 +321,6 @@ export function ResultsTable({ results, onSelectResult }: ResultsTableProps) {
                               {result.toolName}
                             </code>
 
-                            {/* Mode */}
-                            <span className="px-2 py-0.5 text-xs bg-muted rounded shrink-0">
-                              {result.mode}
-                            </span>
-
                             {/* Auth Type Badge */}
                             {result.authType && result.authType !== 'none' && (
                               <span

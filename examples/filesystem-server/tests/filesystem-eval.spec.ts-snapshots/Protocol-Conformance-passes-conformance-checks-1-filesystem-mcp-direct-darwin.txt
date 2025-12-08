@@ -5,6 +5,11 @@
     "message": "Server info: secure-filesystem-server v0.2.0"
   },
   {
+    "name": "capabilities_valid",
+    "pass": true,
+    "message": "Server capabilities: tools"
+  },
+  {
     "name": "list_tools_succeeds",
     "pass": true,
     "message": "listTools returned 14 tools"

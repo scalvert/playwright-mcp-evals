@@ -131,10 +131,9 @@ export default class MCPReporter implements Reporter {
         const testPassed = result.status === 'passed';
 
         const syntheticResult: EvalCaseResult = {
-          id: `${test.title}-${callData.toolName}`,
+          id: test.title,
           datasetName: suiteName,
           toolName: callData.toolName,
-          mode: 'direct',
           source: 'test',
           pass: testPassed,
           response: callData.result,

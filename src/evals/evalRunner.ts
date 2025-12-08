@@ -89,8 +89,9 @@ export interface EvalCaseResult {
 
   /**
    * Evaluation mode (direct or llm_host)
+   * @deprecated Mode is inferred from test context, not displayed in reports
    */
-  mode: 'direct' | 'llm_host';
+  mode?: 'direct' | 'llm_host';
 
   /**
    * Source of this result
