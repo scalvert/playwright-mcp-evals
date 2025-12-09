@@ -37,7 +37,6 @@ export function TokenApp({ serverUrl, options }: TokenAppProps) {
 
   useEffect(() => {
     async function loadTokens() {
-      // Validate URL
       try {
         new URL(serverUrl);
       } catch {
@@ -67,7 +66,6 @@ export function TokenApp({ serverUrl, options }: TokenAppProps) {
     loadTokens();
   }, [serverUrl, options.stateDir]);
 
-  // Exit after rendering success/error
   useEffect(() => {
     if (step === 'success' || step === 'error') {
       exit();
@@ -76,12 +74,10 @@ export function TokenApp({ serverUrl, options }: TokenAppProps) {
 
   const format = options.format ?? 'env';
 
-  // Loading state (brief, usually instant)
   if (step === 'loading') {
     return null;
   }
 
-  // Error state
   if (step === 'error') {
     if (error === 'No tokens found') {
       return (
@@ -104,8 +100,6 @@ export function TokenApp({ serverUrl, options }: TokenAppProps) {
     );
   }
 
-  // Success state - output tokens in requested format
-  // These are plain text for machine readability / piping
   if (step === 'success' && tokens) {
     switch (format) {
       case 'env':

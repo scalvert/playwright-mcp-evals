@@ -31,16 +31,11 @@ interface AuthResult {
 
 export function LoginApp({ serverUrl, options }: LoginAppProps) {
   const { exit } = useApp();
-
-  // State machine
   const [step, setStep] = useState<Step>('validating');
-
-  // Result state
   const [result, setResult] = useState<AuthResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [stateDir, setStateDir] = useState<string>('');
 
-  // Handle Ctrl+C
   useInput((input, key) => {
     if (key.ctrl && input === 'c') {
       exit();
@@ -49,7 +44,6 @@ export function LoginApp({ serverUrl, options }: LoginAppProps) {
 
   const authenticate = useCallback(async () => {
     try {
-      // Validate URL
       new URL(serverUrl);
     } catch {
       setError(`Invalid URL: ${serverUrl}`);
@@ -57,7 +51,6 @@ export function LoginApp({ serverUrl, options }: LoginAppProps) {
       return;
     }
 
-    // Parse scopes
     const scopes = options.scopes
       ? options.scopes.split(',').map((s) => s.trim())
       : undefined;
@@ -92,32 +85,26 @@ export function LoginApp({ serverUrl, options }: LoginAppProps) {
     }
   }, [serverUrl, options]);
 
-  // Start authentication on mount
   useEffect(() => {
     authenticate();
   }, [authenticate]);
 
-  // Exit after rendering done/error
   useEffect(() => {
     if (step === 'done' || step === 'error') {
       exit();
     }
   }, [step, exit]);
 
-  // Render based on step
   return (
     <Box flexDirection="column" padding={1}>
-      {/* Validating */}
       {step === 'validating' && (
         <Spinner label="Validating server URL..." />
       )}
 
-      {/* Clearing */}
       {step === 'clearing' && (
         <Spinner label="Clearing existing credentials..." />
       )}
 
-      {/* Authenticating */}
       {step === 'authenticating' && (
         <Box flexDirection="column">
           <Spinner label={`Authenticating with ${serverUrl}...`} />
@@ -125,7 +112,6 @@ export function LoginApp({ serverUrl, options }: LoginAppProps) {
         </Box>
       )}
 
-      {/* Done */}
       {step === 'done' && result && (
         <Box flexDirection="column">
           {result.fromEnv ? (
