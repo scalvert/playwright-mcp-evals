@@ -25,6 +25,12 @@ export interface StoredTokens {
    * Token type (typically "Bearer")
    */
   tokenType: string;
+
+  /**
+   * Client ID that was used to obtain these tokens.
+   * Required for token refresh since refresh tokens are bound to the client.
+   */
+  clientId?: string;
 }
 
 /**

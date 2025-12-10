@@ -546,8 +546,11 @@ export class CLIOAuthClient {
         redirectUri,
       });
 
-      // Store tokens
-      const tokens = this.tokenResultToStoredTokens(tokenResult);
+      // Store tokens with the client ID used to obtain them
+      const tokens = this.tokenResultToStoredTokens(
+        tokenResult,
+        client.clientId
+      );
       await this.storage.saveTokens(tokens);
 
       return { tokens, requestedScopes };
@@ -559,6 +562,10 @@ export class CLIOAuthClient {
 
   /**
    * Refresh an expired token
+   *
+   * Uses the clientId stored with the tokens (if available) to ensure
+   * the refresh request uses the same client that obtained the original tokens.
+   * This is important because refresh tokens are bound to the client_id.
    */
   private async refreshStoredToken(
     storedTokens: StoredTokens
@@ -573,19 +580,41 @@ export class CLIOAuthClient {
       throw new Error('No cached server metadata for refresh');
     }
 
-    // Get client info
-    const client = await this.getOrRegisterClient(metadata.authServer);
+    // Determine which client credentials to use for refresh.
+    // Priority: tokens.clientId > stored client.json > error
+    let clientId: string;
+    let clientSecret: string | undefined;
+
+    if (storedTokens.clientId) {
+      // Use the client ID that was used to obtain these tokens
+      debug('Using clientId from stored tokens for refresh');
+      clientId = storedTokens.clientId;
+
+      // Try to get the client secret from stored client info if it matches
+      const storedClient = await this.storage.loadClient();
+      if (storedClient?.clientId === clientId) {
+        clientSecret = storedClient.clientSecret;
+      }
+    } else {
+      // Legacy tokens without clientId - fall back to stored client
+      debug(
+        'No clientId in stored tokens, falling back to stored client (legacy behavior)'
+      );
+      const client = await this.getOrRegisterClient(metadata.authServer);
+      clientId = client.clientId;
+      clientSecret = client.clientSecret;
+    }
 
     // Refresh token
     const tokenResult = await refreshAccessToken({
       authServer: metadata.authServer,
-      clientId: client.clientId,
-      clientSecret: client.clientSecret,
+      clientId,
+      clientSecret,
       refreshToken: storedTokens.refreshToken,
     });
 
-    // Store new tokens
-    const tokens = this.tokenResultToStoredTokens(tokenResult);
+    // Store new tokens with the clientId that was used
+    const tokens = this.tokenResultToStoredTokens(tokenResult, clientId);
     await this.storage.saveTokens(tokens);
 
     return tokens;
@@ -735,8 +764,14 @@ export class CLIOAuthClient {
 
   /**
    * Convert TokenResult to StoredTokens
+   *
+   * @param result - Token result from exchange or refresh
+   * @param clientId - Client ID that was used to obtain these tokens
    */
-  private tokenResultToStoredTokens(result: TokenResult): StoredTokens {
+  private tokenResultToStoredTokens(
+    result: TokenResult,
+    clientId: string
+  ): StoredTokens {
     return {
       accessToken: result.accessToken,
       tokenType: result.tokenType,
@@ -744,6 +779,7 @@ export class CLIOAuthClient {
       expiresAt: result.expiresIn
         ? Date.now() + result.expiresIn * 1000
         : undefined,
+      clientId,
     };
   }
 

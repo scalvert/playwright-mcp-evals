@@ -306,6 +306,38 @@ export async function refreshAccessToken(
     config.refreshToken
   );
 
+  // Handle non-OK responses that may not be JSON (oauth4webapi requires application/json)
+  if (!response.ok) {
+    const contentType = response.headers.get('content-type') ?? '';
+    let errorMessage = `Token refresh failed: ${response.status} ${response.statusText}`;
+
+    try {
+      if (contentType.includes('application/json')) {
+        // Try to extract OAuth error from JSON response
+        const errorBody = (await response.clone().json()) as {
+          error?: string;
+          error_description?: string;
+        };
+        if (errorBody.error) {
+          errorMessage = `Token refresh failed: ${errorBody.error}`;
+          if (errorBody.error_description) {
+            errorMessage += ` - ${errorBody.error_description}`;
+          }
+        }
+      } else {
+        // Non-JSON response (e.g., text/plain) - read the body as text
+        const textBody = await response.clone().text();
+        if (textBody) {
+          errorMessage = `Token refresh failed: ${response.status} - ${textBody}`;
+        }
+      }
+    } catch {
+      // If we can't parse the error body, use the status message
+    }
+
+    throw new Error(errorMessage);
+  }
+
   const result = await oauth.processRefreshTokenResponse(
     config.authServer.server,
     client,
