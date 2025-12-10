@@ -1,4 +1,14 @@
 
+
+## v0.10.1 (2025-12-10)
+
+#### :bug: Bug Fix
+* [#11](https://github.com/mcp-testing/server-tester/pull/11) feat: Improve OAuth token refresh and simplify test fixture auth ([@steve-calvert-glean](https://github.com/steve-calvert-glean))
+
+#### Committers: 1
+- Steve Calvert ([@steve-calvert-glean](https://github.com/steve-calvert-glean))
+
+
 ## v0.10.0 (2025-12-10)
 
 #### :rocket: Enhancement
