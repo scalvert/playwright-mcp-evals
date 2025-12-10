@@ -11,18 +11,17 @@ import {
   type AuthType,
 } from '../mcp/fixtures/mcpFixture.js';
 import { PlaywrightOAuthClientProvider } from '../auth/oauthClientProvider.js';
-import type { MCPConfig } from '../config/mcpConfig.js';
+import { CLIOAuthClient } from '../auth/cli.js';
+import { isHttpConfig, type MCPConfig } from '../config/mcpConfig.js';
 
 /**
- * Determines the authentication type from an MCP config
+ * Internal fixture state for passing auth type between fixtures
  */
-function getAuthTypeFromConfig(mcpConfig?: MCPConfig): AuthType {
-  if (!mcpConfig?.auth) return 'none';
-  // OAuth is configured via authStatePath or oauth object
-  if (mcpConfig.auth.oauth?.authStatePath) return 'oauth';
-  // Static token auth
-  if (mcpConfig.auth.accessToken) return 'bearer-token';
-  return 'none';
+interface MCPFixtureState {
+  /**
+   * The resolved authentication type (may differ from config if CLI tokens are used)
+   */
+  resolvedAuthType: AuthType;
 }
 
 /**
@@ -38,6 +37,11 @@ type MCPFixtures = {
    * High-level MCP API for tests
    */
   mcp: MCPFixtureApi;
+
+  /**
+   * Internal fixture state (not for external use)
+   */
+  _mcpFixtureState: MCPFixtureState;
 };
 
 /**
@@ -53,16 +57,31 @@ type MCPFixtures = {
  */
 export const test = base.extend<MCPFixtures>({
   /**
+   * Internal fixture state - tracks resolved auth type between fixtures
+   */
+  _mcpFixtureState: [
+    // eslint-disable-next-line no-empty-pattern
+    async ({}, use) => {
+      // Initialize with 'none', will be updated by mcpClient fixture
+      const state: MCPFixtureState = { resolvedAuthType: 'none' };
+      await use(state);
+    },
+    { scope: 'test' },
+  ],
+
+  /**
    * mcpClient fixture: Creates and connects an MCP client
    *
    * The client configuration is read from the project's `use.mcpConfig`
    * setting in playwright.config.ts
    *
-   * Supports both static token auth (via config.auth.accessToken) and
-   * OAuth (via config.auth.oauth with authStatePath).
+   * Authentication resolution order:
+   * 1. Explicit authStatePath → uses PlaywrightOAuthClientProvider
+   * 2. Explicit accessToken → uses static Bearer token
+   * 3. HTTP transport with no auth → tries CLI-stored tokens (from `mcp-test login`)
+   *    with automatic token refresh
    */
-  // eslint-disable-next-line no-empty-pattern
-  mcpClient: async ({}, use, testInfo) => {
+  mcpClient: async ({ _mcpFixtureState }, use, testInfo) => {
     // Extract mcpConfig from project use settings
     const useConfig = testInfo.project.use as { mcpConfig?: MCPConfig };
     const mcpConfig = useConfig.mcpConfig;
@@ -74,7 +93,10 @@ export const test = base.extend<MCPFixtures>({
       );
     }
 
-    // Create auth provider if OAuth is configured
+    // Track resolved auth type
+    let resolvedAuthType: AuthType = 'none';
+
+    // Create auth provider if OAuth authStatePath is configured
     let authProvider: OAuthClientProvider | undefined;
     if (mcpConfig.auth?.oauth?.authStatePath) {
       authProvider = new PlaywrightOAuthClientProvider({
@@ -85,10 +107,50 @@ export const test = base.extend<MCPFixtures>({
         clientId: mcpConfig.auth.oauth.clientId,
         clientSecret: mcpConfig.auth.oauth.clientSecret,
       });
+      resolvedAuthType = 'oauth';
     }
 
+    // Build effective config - may add CLI tokens if no auth is configured
+    let effectiveConfig = mcpConfig;
+
+    // Check for explicit static token
+    if (mcpConfig.auth?.accessToken) {
+      resolvedAuthType = 'bearer-token';
+    }
+
+    // If HTTP transport with no explicit auth, try to use CLI-stored tokens
+    // This enables the simple flow: `mcp-test login <url>` then run tests
+    if (
+      isHttpConfig(mcpConfig) &&
+      !mcpConfig.auth?.accessToken &&
+      !mcpConfig.auth?.oauth?.authStatePath
+    ) {
+      const cliClient = new CLIOAuthClient({
+        mcpServerUrl: mcpConfig.serverUrl,
+      });
+
+      // Try to get a valid token (will refresh if expired)
+      const tokenResult = await cliClient.tryGetAccessToken();
+
+      if (tokenResult) {
+        // Use the CLI token as static auth
+        effectiveConfig = {
+          ...mcpConfig,
+          auth: {
+            ...mcpConfig.auth,
+            accessToken: tokenResult.accessToken,
+          },
+        };
+        // CLI tokens come from OAuth flow
+        resolvedAuthType = 'oauth';
+      }
+    }
+
+    // Store resolved auth type for mcp fixture
+    _mcpFixtureState.resolvedAuthType = resolvedAuthType;
+
     // Create and connect client
-    const client = await createMCPClientForConfig(mcpConfig, {
+    const client = await createMCPClientForConfig(effectiveConfig, {
       clientInfo: {
         name: '@mcp-testing/server-tester',
         version: '0.1.0',
@@ -111,12 +173,10 @@ export const test = base.extend<MCPFixtures>({
    * Depends on mcpClient fixture
    * Automatically tracks all MCP operations for the reporter
    */
-  mcp: async ({ mcpClient }, use, testInfo) => {
-    // Determine auth type from project config
-    const useConfig = testInfo.project.use as { mcpConfig?: MCPConfig };
-    const authType = getAuthTypeFromConfig(useConfig.mcpConfig);
-
-    const api = createMCPFixture(mcpClient, testInfo, { authType });
+  mcp: async ({ mcpClient, _mcpFixtureState }, use, testInfo) => {
+    const api = createMCPFixture(mcpClient, testInfo, {
+      authType: _mcpFixtureState.resolvedAuthType,
+    });
     await use(api);
   },
 });
