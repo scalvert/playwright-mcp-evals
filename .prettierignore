@@ -1,6 +1,9 @@
 # Build output
 dist/
 
+# Changelog (auto-generated, has specific formatting)
+CHANGELOG.md
+
 # Snapshot files (may contain non-JSON error messages)
 **/*-snapshots/*.json
 
