@@ -41,6 +41,8 @@ function createMockMCP(options: {
 
   return {
     client: mockClient,
+    authType: 'none',
+    project: 'test-project',
     getServerInfo: vi.fn().mockReturnValue(options.serverInfo ?? null),
     listTools: options.listToolsError
       ? vi.fn().mockRejectedValue(options.listToolsError)

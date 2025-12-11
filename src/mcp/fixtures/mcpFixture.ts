@@ -40,6 +40,12 @@ export interface MCPFixtureOptions {
    * - 'none': No authentication
    */
   authType?: AuthType;
+
+  /**
+   * Playwright project name for this test
+   * Used for filtering and grouping in the reporter
+   */
+  project?: string;
 }
 
 /**
@@ -52,6 +58,16 @@ export interface MCPFixtureApi {
    * The underlying MCP client (for advanced usage)
    */
   client: Client;
+
+  /**
+   * Authentication type used for this test session
+   */
+  authType: AuthType;
+
+  /**
+   * Playwright project name for this test session
+   */
+  project?: string;
 
   /**
    * Lists all available tools from the MCP server
@@ -113,10 +129,13 @@ export function createMCPFixture(
   options?: MCPFixtureOptions
 ): MCPFixtureApi {
   const authType = options?.authType ?? 'none';
+  const project = options?.project;
   // If no testInfo, return basic API without tracking
   if (!testInfo) {
     return {
       client,
+      authType,
+      project,
 
       async listTools(): Promise<Array<Tool>> {
         const result = (await client.listTools()) as ListToolsResult;
@@ -150,6 +169,8 @@ export function createMCPFixture(
   // With testInfo, return tracked API
   return {
     client,
+    authType,
+    project,
 
     async listTools(): Promise<Array<Tool>> {
       const execute = async () => {
@@ -206,6 +227,7 @@ export function createMCPFixture(
               durationMs,
               isError: result.isError || false,
               authType,
+              project,
             },
             null,
             2

@@ -11,6 +11,8 @@ import type { MCPFixtureApi } from '../../mcp/fixtures/mcpFixture.js';
 function createMockMCP(): MCPFixtureApi {
   return {
     client: {} as MCPFixtureApi['client'],
+    authType: 'none',
+    project: 'test-project',
     getServerInfo: vi.fn(),
     listTools: vi.fn(),
     callTool: vi.fn(),

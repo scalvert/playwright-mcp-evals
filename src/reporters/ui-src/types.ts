@@ -32,6 +32,7 @@ export interface MCPEvalResult {
   error?: string;
   expectations: Record<string, MCPEvalExpectationResult>;
   authType?: 'oauth' | 'bearer-token' | 'none';
+  project?: string;
   durationMs: number;
 }
 

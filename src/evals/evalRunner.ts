@@ -137,6 +137,12 @@ export interface EvalCaseResult {
   authType?: 'oauth' | 'bearer-token' | 'none';
 
   /**
+   * Playwright project name this test belongs to
+   * Used for filtering/grouping results by project in the reporter
+   */
+  project?: string;
+
+  /**
    * Execution time in milliseconds
    */
   durationMs: number;
@@ -359,7 +365,7 @@ export async function runEvalCase(
     ? {}
     : await runExpectations(expectations, context, evalCase, response);
 
-  // Build result
+  // Build result - use test context for authType and project (Playwright is source of truth)
   return {
     id: evalCase.id,
     datasetName: options.datasetName ?? 'single-case',
@@ -370,7 +376,8 @@ export async function runEvalCase(
     response,
     error,
     expectations: expectationResults,
-    authType: evalCase.authType,
+    authType: context.mcp.authType,
+    project: context.mcp.project,
     durationMs: Date.now() - startTime,
   };
 }

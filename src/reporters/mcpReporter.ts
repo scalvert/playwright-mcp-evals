@@ -87,6 +87,8 @@ export default class MCPReporter implements Reporter {
           caseResults: Array<EvalCaseResult>;
         };
 
+        // Trust the data from the attachment - evalRunner now includes
+        // authType and project from the mcp fixture (Playwright is source of truth)
         this.allResults.push(...evalResults.caseResults);
         hasEvalDataset = true;
       } catch (error) {
@@ -117,6 +119,7 @@ export default class MCPReporter implements Reporter {
       if (!attachment.body) continue;
 
       try {
+        // Attachment now includes authType and project from the mcp fixture
         const callData = JSON.parse(attachment.body.toString('utf-8')) as {
           operation: string;
           toolName: string;
@@ -125,6 +128,7 @@ export default class MCPReporter implements Reporter {
           durationMs: number;
           isError: boolean;
           authType?: 'oauth' | 'bearer-token' | 'none';
+          project?: string;
         };
 
         const suiteName = test.parent?.title || 'Uncategorized Tests';
@@ -140,6 +144,7 @@ export default class MCPReporter implements Reporter {
           error: !testPassed ? 'Test failed' : undefined,
           expectations: {},
           authType: callData.authType,
+          project: callData.project,
           durationMs: callData.durationMs,
         };
 

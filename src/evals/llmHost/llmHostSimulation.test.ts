@@ -22,6 +22,8 @@ import { runSimulation } from './orchestrator.js';
 function createMockMCP(): MCPFixtureApi {
   return {
     client: {} as MCPFixtureApi['client'],
+    authType: 'none',
+    project: 'test-project',
     listTools: vi.fn().mockResolvedValue([]),
     callTool: vi.fn().mockResolvedValue({
       content: [{ type: 'text', text: 'Tool result' }],

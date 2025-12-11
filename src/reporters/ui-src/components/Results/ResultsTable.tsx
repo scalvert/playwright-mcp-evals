@@ -5,6 +5,7 @@ import {
   ChevronDown,
   ChevronRight,
   Shield,
+  Folder,
 } from 'lucide-react';
 import type { MCPEvalResult } from '../../types';
 
@@ -28,10 +29,22 @@ export function ResultsTable({ results, onSelectResult }: ResultsTableProps) {
     'all'
   );
   const [authFilter, setAuthFilter] = useState<AuthFilterType>('all');
+  const [projectFilter, setProjectFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(
     new Set()
   );
+
+  // Get unique projects from results
+  const uniqueProjects = useMemo(() => {
+    const projects = new Set<string>();
+    for (const r of results) {
+      if (r.project) {
+        projects.add(r.project);
+      }
+    }
+    return Array.from(projects).sort();
+  }, [results]);
 
   const filteredResults = useMemo(() => {
     let filtered = [...results];
@@ -54,6 +67,10 @@ export function ResultsTable({ results, onSelectResult }: ResultsTableProps) {
       });
     }
 
+    if (projectFilter !== 'all') {
+      filtered = filtered.filter((r) => r.project === projectFilter);
+    }
+
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter((r) => {
@@ -66,7 +83,7 @@ export function ResultsTable({ results, onSelectResult }: ResultsTableProps) {
     }
 
     return filtered;
-  }, [results, filter, sourceFilter, authFilter, searchQuery]);
+  }, [results, filter, sourceFilter, authFilter, projectFilter, searchQuery]);
 
   const groupedResults = useMemo(() => {
     const groups = new Map<string, MCPEvalResult[]>();
@@ -163,6 +180,24 @@ export function ResultsTable({ results, onSelectResult }: ResultsTableProps) {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
+        {/* Project Filter - only show if multiple projects */}
+        {uniqueProjects.length > 1 && (
+          <div className="flex items-center gap-2">
+            <Folder size={16} className="text-muted-foreground" />
+            <select
+              value={projectFilter}
+              onChange={(e) => setProjectFilter(e.target.value)}
+              className="px-3 py-2 text-sm rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              <option value="all">All Projects</option>
+              {uniqueProjects.map((project) => (
+                <option key={project} value={project}>
+                  {project}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         {/* Auth Type Filter */}
         <div className="flex items-center gap-2">
           <Shield size={16} className="text-muted-foreground" />
@@ -333,6 +368,13 @@ export function ResultsTable({ results, onSelectResult }: ResultsTableProps) {
                                 {result.authType === 'oauth'
                                   ? 'OAuth'
                                   : 'Token'}
+                              </span>
+                            )}
+
+                            {/* Project Badge - only show if multiple projects */}
+                            {uniqueProjects.length > 1 && result.project && (
+                              <span className="px-2 py-0.5 text-xs rounded shrink-0 bg-slate-500/20 text-slate-700 dark:text-slate-400">
+                                {result.project}
                               </span>
                             )}
 

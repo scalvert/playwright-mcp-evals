@@ -176,6 +176,7 @@ export const test = base.extend<MCPFixtures>({
   mcp: async ({ mcpClient, _mcpFixtureState }, use, testInfo) => {
     const api = createMCPFixture(mcpClient, testInfo, {
       authType: _mcpFixtureState.resolvedAuthType,
+      project: testInfo.project.name,
     });
     await use(api);
   },
