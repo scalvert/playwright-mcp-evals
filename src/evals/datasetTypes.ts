@@ -190,13 +190,15 @@ export interface EvalCase {
   /**
    * Authentication type used for this test case
    *
-   * Used for filtering and categorizing tests by auth method in the reporter.
+   * @deprecated This field is no longer used. The authType is now automatically
+   * determined from the Playwright test context (MCPFixtureApi.authType), which
+   * derives it from the mcpConfig.auth settings. This ensures consistency between
+   * test execution and reporting.
+   *
+   * Used for filtering and categorizing tests by auth method in the reporter:
    * - 'oauth': OAuth 2.1 with PKCE
    * - 'bearer-token': Static bearer token
    * - 'none': No authentication
-   *
-   * For eval datasets, set explicitly. For Playwright tests, auto-detected
-   * from mcpConfig.auth settings.
    */
   authType?: 'oauth' | 'bearer-token' | 'none';
 
