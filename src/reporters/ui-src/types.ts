@@ -85,7 +85,7 @@ export interface EvalCaseResult {
   toolName: string;
   source: ResultSource;
   pass: boolean;
-  response: unknown;
+  response?: unknown;
   error?: string;
   expectations: Partial<Record<ExpectationType, MCPEvalExpectationResult>>;
   authType?: AuthType;

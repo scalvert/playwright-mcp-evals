@@ -27,7 +27,7 @@ export function ConformancePanel({
 
   // Flatten all checks from all conformance results
   const allChecks = conformanceChecks.flatMap((result) =>
-    result.checks.map((check) => ({
+    (result.checks ?? []).map((check) => ({
       ...check,
       serverInfo: result.serverInfo,
       testTitle: result.testTitle,
