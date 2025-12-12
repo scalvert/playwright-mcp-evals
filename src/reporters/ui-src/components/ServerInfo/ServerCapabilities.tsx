@@ -1,9 +1,11 @@
-import React, { useState, useMemo } from 'react';
-import { Wrench, ChevronDown, ChevronRight, Info } from 'lucide-react';
+import React, { useMemo } from 'react';
+import { Wrench, ChevronDown, ChevronRight } from 'lucide-react';
 import type { MCPServerCapabilitiesData } from '../../types';
 
 interface ServerCapabilitiesProps {
   serverCapabilities: MCPServerCapabilitiesData[];
+  isExpanded: boolean;
+  onToggle: () => void;
 }
 
 interface ToolInfo {
@@ -13,8 +15,9 @@ interface ToolInfo {
 
 export function ServerCapabilities({
   serverCapabilities,
+  isExpanded,
+  onToggle,
 }: ServerCapabilitiesProps) {
-  const [expandedTools, setExpandedTools] = useState<Set<string>>(new Set());
 
   // Deduplicate tools across all capability reports
   const uniqueTools = useMemo(() => {
@@ -38,24 +41,20 @@ export function ServerCapabilities({
     return null;
   }
 
-  const toggleExpanded = (toolName: string) => {
-    setExpandedTools((prev) => {
-      const next = new Set(prev);
-      if (next.has(toolName)) {
-        next.delete(toolName);
-      } else {
-        next.add(toolName);
-      }
-      return next;
-    });
-  };
-
   return (
     <div className="rounded-lg border bg-card shadow-sm overflow-hidden">
-      {/* Header */}
-      <div className="px-4 py-3 border-b bg-blue-500/10 border-blue-500/20">
+      {/* Header - Clickable */}
+      <button
+        onClick={onToggle}
+        className="w-full px-4 py-3 border-b bg-blue-500/10 border-blue-500/20 hover:bg-blue-500/15 transition-colors"
+      >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
+            {isExpanded ? (
+              <ChevronDown className="w-4 h-4 text-muted-foreground" />
+            ) : (
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            )}
             <Wrench className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             <h3 className="font-semibold">Server Capabilities</h3>
           </div>
@@ -63,61 +62,33 @@ export function ServerCapabilities({
             {uniqueTools.length} tools available
           </span>
         </div>
-      </div>
+      </button>
 
-      {/* Tools Grid */}
-      <div className="p-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-          {uniqueTools.map((tool) => {
-            const hasDescription = !!tool.description;
-            const isExpanded = expandedTools.has(tool.name);
-
-            if (!hasDescription) {
-              // Simple display for tools without description
-              return (
-                <div
-                  key={tool.name}
-                  className="flex items-center gap-2 p-2 rounded bg-muted/30 hover:bg-muted/50 transition-colors"
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                  <code className="text-sm font-mono">{tool.name}</code>
-                </div>
-              );
-            }
-
-            // Expandable display for tools with description
-            return (
-              <div
-                key={tool.name}
-                className="rounded bg-muted/30 hover:bg-muted/50 transition-colors overflow-hidden"
-              >
-                <button
-                  onClick={() => toggleExpanded(tool.name)}
-                  className="w-full flex items-center gap-2 p-2 text-left"
-                >
-                  {isExpanded ? (
-                    <ChevronDown className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-                  ) : (
-                    <ChevronRight className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-                  )}
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />
-                  <code className="text-sm font-mono truncate flex-1">
+      {/* Tools List - Collapsible with fixed height */}
+      {isExpanded && (
+        <div className="divide-y divide-border max-h-72 overflow-y-auto">
+          {uniqueTools.map((tool) => (
+            <div
+              key={tool.name}
+              className="px-4 py-3 hover:bg-muted/30 transition-colors"
+            >
+              <div className="flex items-start gap-3">
+                <span className="w-1.5 h-1.5 mt-2 rounded-full bg-blue-500 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <code className="text-sm font-semibold font-mono text-foreground">
                     {tool.name}
                   </code>
-                  <Info className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-                </button>
-                {isExpanded && (
-                  <div className="px-8 pb-2">
-                    <p className="text-xs text-muted-foreground">
+                  {tool.description && (
+                    <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
                       {tool.description}
                     </p>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
-      </div>
+      )}
     </div>
   );
 }

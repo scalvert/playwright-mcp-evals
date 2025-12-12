@@ -26,62 +26,69 @@ function computeMetrics(results: MCPEvalResult[]): MetricsSummary {
 }
 
 export function MetricsCards({ results }: MetricsCardsProps) {
-  const { overall, evals, tests } = useMemo(() => {
+  const overall = useMemo(() => computeMetrics(results), [results]);
+
+  return (
+    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <MetricCard
+        title="Pass Rate"
+        value={`${(overall.passRate * 100).toFixed(1)}%`}
+        variant={overall.passRate >= 0.8 ? 'success' : 'error'}
+      />
+      <MetricCard
+        title="Total Tests"
+        value={overall.total.toString()}
+        variant="neutral"
+      />
+      <MetricCard
+        title="Passed"
+        value={overall.passed.toString()}
+        variant="success"
+      />
+      <MetricCard
+        title="Failed"
+        value={overall.failed.toString()}
+        variant={overall.failed === 0 ? 'neutral' : 'error'}
+      />
+    </div>
+  );
+}
+
+interface SourceBreakdownProps {
+  results: MCPEvalResult[];
+}
+
+export function SourceBreakdown({ results }: SourceBreakdownProps) {
+  const { evals, tests } = useMemo(() => {
     const evalResults = results.filter((r) => r.source === 'eval');
     const testResults = results.filter((r) => r.source === 'test');
     return {
-      overall: computeMetrics(results),
       evals: computeMetrics(evalResults),
       tests: computeMetrics(testResults),
     };
   }, [results]);
 
-  return (
-    <div className="space-y-4">
-      {/* Overall Summary */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <MetricCard
-          title="Pass Rate"
-          value={`${(overall.passRate * 100).toFixed(1)}%`}
-          variant={overall.passRate >= 0.8 ? 'success' : 'error'}
-        />
-        <MetricCard
-          title="Total Tests"
-          value={overall.total.toString()}
-          variant="neutral"
-        />
-        <MetricCard
-          title="Passed"
-          value={overall.passed.toString()}
-          variant="success"
-        />
-        <MetricCard
-          title="Failed"
-          value={overall.failed.toString()}
-          variant={overall.failed === 0 ? 'neutral' : 'error'}
-        />
-      </div>
+  if (evals.total === 0 && tests.total === 0) {
+    return null;
+  }
 
-      {/* Breakdown by Source */}
-      {(evals.total > 0 || tests.total > 0) && (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          {evals.total > 0 && (
-            <SourceBreakdownCard
-              title="Eval Datasets"
-              icon={<BarChart3 size={18} />}
-              metrics={evals}
-              accentColor="blue"
-            />
-          )}
-          {tests.total > 0 && (
-            <SourceBreakdownCard
-              title="Test Suites"
-              icon={<FlaskConical size={18} />}
-              metrics={tests}
-              accentColor="purple"
-            />
-          )}
-        </div>
+  return (
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      {tests.total > 0 && (
+        <SourceBreakdownCard
+          title="Test Suites"
+          icon={<FlaskConical size={18} />}
+          metrics={tests}
+          accentColor="purple"
+        />
+      )}
+      {evals.total > 0 && (
+        <SourceBreakdownCard
+          title="Eval Datasets"
+          icon={<BarChart3 size={18} />}
+          metrics={evals}
+          accentColor="blue"
+        />
       )}
     </div>
   );
