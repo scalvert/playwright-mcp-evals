@@ -7,18 +7,18 @@ import {
   Shield,
   Folder,
 } from 'lucide-react';
-import type { MCPEvalResult } from '../../types';
+import type { EvalCaseResult } from '../../types';
 
 type AuthFilterType = 'all' | 'oauth' | 'api-token' | 'none';
 
 interface ResultsTableProps {
-  results: MCPEvalResult[];
-  onSelectResult?: (result: MCPEvalResult) => void;
+  results: EvalCaseResult[];
+  onSelectResult?: (result: EvalCaseResult) => void;
 }
 
 interface ResultGroup {
   name: string;
-  results: MCPEvalResult[];
+  results: EvalCaseResult[];
   passed: number;
   failed: number;
 }
@@ -86,7 +86,7 @@ export function ResultsTable({ results, onSelectResult }: ResultsTableProps) {
   }, [results, filter, sourceFilter, authFilter, projectFilter, searchQuery]);
 
   const groupedResults = useMemo(() => {
-    const groups = new Map<string, MCPEvalResult[]>();
+    const groups = new Map<string, EvalCaseResult[]>();
 
     for (const result of filteredResults) {
       const key = result.datasetName || 'Uncategorized';

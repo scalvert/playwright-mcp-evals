@@ -1,8 +1,8 @@
 import React from 'react';
-import type { MCPEvalResult } from '../../types';
+import type { EvalCaseResult } from '../../types';
 
 interface DetailModalProps {
-  result: MCPEvalResult | null;
+  result: EvalCaseResult | null;
   onClose: () => void;
 }
 

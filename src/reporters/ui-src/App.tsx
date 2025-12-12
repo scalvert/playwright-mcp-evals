@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import type { MCPEvalData, MCPEvalResult } from './types';
+import type { MCPEvalData, EvalCaseResult } from './types';
 import { Layout } from './components/Layout';
 import {
   MetricsCards,
@@ -39,7 +39,7 @@ function App() {
     historical: [],
   };
 
-  const [selectedResult, setSelectedResult] = useState<MCPEvalResult | null>(
+  const [selectedResult, setSelectedResult] = useState<EvalCaseResult | null>(
     null
   );
 

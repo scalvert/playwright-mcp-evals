@@ -129,15 +129,18 @@ export default class MCPReporter implements Reporter {
           project?: string;
         };
 
-        this.conformanceChecks.push({
-          testTitle: test.title,
-          pass: conformanceData.pass,
-          checks: conformanceData.checks,
-          serverInfo: conformanceData.serverInfo,
-          toolCount: conformanceData.toolCount,
-          authType: conformanceData.authType,
-          project: conformanceData.project,
-        });
+        // Only push if checks array is valid
+        if (Array.isArray(conformanceData.checks)) {
+          this.conformanceChecks.push({
+            testTitle: test.title,
+            pass: conformanceData.pass,
+            checks: conformanceData.checks,
+            serverInfo: conformanceData.serverInfo,
+            toolCount: conformanceData.toolCount,
+            authType: conformanceData.authType,
+            project: conformanceData.project,
+          });
+        }
       } catch (error) {
         this.logError(
           `[MCP Reporter] Failed to parse conformance check attachment for "${test.title}":`,
@@ -162,13 +165,16 @@ export default class MCPReporter implements Reporter {
           tools: Array<{ name: string; description?: string }>;
         };
 
-        this.serverCapabilities.push({
-          testTitle: test.title,
-          tools: listToolsData.tools,
-          toolCount: listToolsData.toolCount,
-          // Note: authType and project are available from the mcp fixture
-          // but not currently included in the listTools attachment
-        });
+        // Only push if tools array is valid
+        if (Array.isArray(listToolsData.tools)) {
+          this.serverCapabilities.push({
+            testTitle: test.title,
+            tools: listToolsData.tools,
+            toolCount: listToolsData.toolCount,
+            // Note: authType and project are available from the mcp fixture
+            // but not currently included in the listTools attachment
+          });
+        }
       } catch (error) {
         this.logError(
           `[MCP Reporter] Failed to parse mcp-list-tools attachment for "${test.title}":`,

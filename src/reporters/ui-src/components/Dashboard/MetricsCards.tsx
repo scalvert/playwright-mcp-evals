@@ -1,9 +1,9 @@
 import React, { useMemo } from 'react';
 import { BarChart3, FlaskConical } from 'lucide-react';
-import type { MCPEvalResult } from '../../types';
+import type { EvalCaseResult } from '../../types';
 
 interface MetricsCardsProps {
-  results: MCPEvalResult[];
+  results: EvalCaseResult[];
 }
 
 interface MetricsSummary {
@@ -13,7 +13,7 @@ interface MetricsSummary {
   passRate: number;
 }
 
-function computeMetrics(results: MCPEvalResult[]): MetricsSummary {
+function computeMetrics(results: EvalCaseResult[]): MetricsSummary {
   const passed = results.filter((r) => r.pass).length;
   const failed = results.filter((r) => !r.pass).length;
   const total = results.length;
@@ -55,7 +55,7 @@ export function MetricsCards({ results }: MetricsCardsProps) {
 }
 
 interface SourceBreakdownProps {
-  results: MCPEvalResult[];
+  results: EvalCaseResult[];
 }
 
 export function SourceBreakdown({ results }: SourceBreakdownProps) {

@@ -79,7 +79,7 @@ export interface MCPServerCapabilitiesData {
 /**
  * Result of a single eval case
  */
-export interface MCPEvalResult {
+export interface EvalCaseResult {
   id: string;
   datasetName: string;
   toolName: string;
@@ -119,7 +119,7 @@ export interface MCPEvalRunData {
     datasetBreakdown: Record<string, number>;
     expectationBreakdown: ExpectationBreakdown;
   };
-  results: MCPEvalResult[];
+  results: EvalCaseResult[];
   conformanceChecks?: MCPConformanceResultData[];
   serverCapabilities?: MCPServerCapabilitiesData[];
 }
