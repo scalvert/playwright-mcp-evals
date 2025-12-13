@@ -32,7 +32,7 @@ export function Layout({
                 {new Date(timestamp).toLocaleString()}
               </span>
               <span className="text-xs text-muted-foreground">
-                {durationMs.toFixed(0)}ms · {platform}
+                {(durationMs / 1000).toFixed(1)}s · {platform}
               </span>
             </div>
             <DarkModeToggle />

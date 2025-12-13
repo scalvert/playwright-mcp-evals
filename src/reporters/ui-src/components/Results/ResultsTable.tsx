@@ -4,12 +4,9 @@ import {
   FlaskConical,
   ChevronDown,
   ChevronRight,
-  Shield,
   Folder,
 } from 'lucide-react';
 import type { EvalCaseResult } from '../../types';
-
-type AuthFilterType = 'all' | 'oauth' | 'api-token' | 'none';
 
 interface ResultsTableProps {
   results: EvalCaseResult[];
@@ -28,7 +25,6 @@ export function ResultsTable({ results, onSelectResult }: ResultsTableProps) {
   const [sourceFilter, setSourceFilter] = useState<'all' | 'eval' | 'test'>(
     'all'
   );
-  const [authFilter, setAuthFilter] = useState<AuthFilterType>('all');
   const [projectFilter, setProjectFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(
@@ -59,14 +55,6 @@ export function ResultsTable({ results, onSelectResult }: ResultsTableProps) {
       filtered = filtered.filter((r) => r.source === sourceFilter);
     }
 
-    if (authFilter !== 'all') {
-      filtered = filtered.filter((r) => {
-        // Treat undefined authType as 'none'
-        const resultAuthType = r.authType ?? 'none';
-        return resultAuthType === authFilter;
-      });
-    }
-
     if (projectFilter !== 'all') {
       filtered = filtered.filter((r) => r.project === projectFilter);
     }
@@ -83,7 +71,7 @@ export function ResultsTable({ results, onSelectResult }: ResultsTableProps) {
     }
 
     return filtered;
-  }, [results, filter, sourceFilter, authFilter, projectFilter, searchQuery]);
+  }, [results, filter, sourceFilter, projectFilter, searchQuery]);
 
   const groupedResults = useMemo(() => {
     const groups = new Map<string, EvalCaseResult[]>();
@@ -198,20 +186,6 @@ export function ResultsTable({ results, onSelectResult }: ResultsTableProps) {
             </select>
           </div>
         )}
-        {/* Auth Type Filter */}
-        <div className="flex items-center gap-2">
-          <Shield size={16} className="text-muted-foreground" />
-          <select
-            value={authFilter}
-            onChange={(e) => setAuthFilter(e.target.value as AuthFilterType)}
-            className="px-3 py-2 text-sm rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-ring"
-          >
-            <option value="all">All Auth</option>
-            <option value="oauth">OAuth</option>
-            <option value="api-token">API Token</option>
-            <option value="none">No Auth</option>
-          </select>
-        </div>
         <div className="flex gap-2">
           <button
             onClick={() => setFilter('all')}
@@ -355,21 +329,6 @@ export function ResultsTable({ results, onSelectResult }: ResultsTableProps) {
                             <code className="text-xs bg-muted px-2 py-1 rounded shrink-0">
                               {result.toolName}
                             </code>
-
-                            {/* Auth Type Badge */}
-                            {result.authType && result.authType !== 'none' && (
-                              <span
-                                className={`px-2 py-0.5 text-xs rounded shrink-0 ${
-                                  result.authType === 'oauth'
-                                    ? 'bg-amber-500/20 text-amber-700 dark:text-amber-400'
-                                    : 'bg-cyan-500/20 text-cyan-700 dark:text-cyan-400'
-                                }`}
-                              >
-                                {result.authType === 'oauth'
-                                  ? 'OAuth'
-                                  : 'API Token'}
-                              </span>
-                            )}
 
                             {/* Project Badge - only show if multiple projects */}
                             {uniqueProjects.length > 1 && result.project && (
