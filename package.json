@@ -1,6 +1,6 @@
 {
   "name": "@mcp-testing/server-tester",
-  "version": "0.10.3",
+  "version": "0.10.4",
   "description": "Playwright-based testing and evaluation framework for MCP servers",
   "keywords": [
     "playwright",
