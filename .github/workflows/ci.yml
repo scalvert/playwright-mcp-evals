@@ -16,8 +16,9 @@ jobs:
 
       - run: npm ci
 
+      - run: npm run format:check
+
       - run: npm run typecheck
-        continue-on-error: true
 
       - run: npm run lint
 
