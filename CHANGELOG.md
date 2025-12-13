@@ -1,6 +1,16 @@
 
 
 
+
+## v0.10.3 (2025-12-13)
+
+#### :rocket: Enhancement
+* [#13](https://github.com/mcp-testing/server-tester/pull/13) feat: improve reporter UI with collapsible panels and better layout ([@steve-calvert-glean](https://github.com/steve-calvert-glean))
+
+#### Committers: 1
+- Steve Calvert ([@steve-calvert-glean](https://github.com/steve-calvert-glean))
+
+
 ## v0.10.2 (2025-12-11)
 
 #### :bug: Bug Fix
